@@ -560,13 +560,13 @@ function beginSurvivalMode() {
 }
 
 function spawnZombie(options = {}) {
-  const side = options.side ?? (Math.random() < 0.5 ? -1 : 1);
+  const spawnPoints = getSpawnPoints(state.stageIndex);
+  const fallbackSpawn = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
+  const side = options.side ?? fallbackSpawn.side ?? (Math.random() < 0.5 ? -1 : 1);
   const stageFactor = 1 + state.stageIndex * 0.15;
   const speed = ZOMBIE_BASE_SPEED * stageFactor + Math.random() * 24;
-  const x =
-    options.x ??
-    (side < 0 ? -40 : WIDTH + 40);
-  const y = options.y ?? (GROUND_Y - 56);
+  const x = options.x ?? fallbackSpawn.x;
+  const y = options.y ?? fallbackSpawn.y ?? (GROUND_Y - 56);
   state.zombies.push({
     type: "zombie",
     x,
