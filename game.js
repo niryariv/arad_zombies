@@ -21,13 +21,13 @@ const keys = new Set();
 const introSteps = [
   {
     until: 3.2,
-    title: "יום רגיל בבית הספר",
-    text: "הילד יושב בכיתה עם החברים שלו, עוד בוקר רגיל לפני האסון.",
+    title: "יום רגיל בקדם ערד",
+    text: "הילד יושב בכיתה בבית הספר קדם בערד, מול המדבר וההרים, בבוקר רגיל לפני האסון.",
   },
   {
     until: 6.4,
     title: "משהו מגיע מהשמיים",
-    text: "קרן חייזרית פוגעת בחצר. אנשים קורסים ואז קמים מחדש כזומבים.",
+    text: "קרן חייזרית פוגעת בחצר של קדם. המורים והתלמידים קורסים ואז קמים מחדש כזומבים.",
   },
   {
     until: 9.8,
@@ -43,27 +43,27 @@ const introSteps = [
 
 const stageDefs = [
   {
-    name: "חצר בית הספר",
+    name: "חצר קדם בערד",
     status: "בריחה",
     hint: "חסלו 5 זומבים ואז ברחו דרך השער מימין.",
   },
   {
-    name: "הבונקר",
+    name: "בונקר הואדיות",
     status: "שחזור חשמל",
     hint: "געו בשלושת הגנרטורים כדי להדליק את הבונקר.",
   },
   {
-    name: "גגות הפרבר",
+    name: "רכס הר עמשא",
     status: "אות מצוקה",
     hint: "הדליקו שני משדרים, צרו קשר עם שורד, והגיעו לבונקר שלו.",
   },
   {
-    name: "רחוב הקריסה",
+    name: "ואדי מצדה",
     status: "טיהור הקינים",
     hint: "פוצצו את שלושת קיני הזוהמה לפני שהרחוב קורס.",
   },
   {
-    name: "מכתש הפלישה",
+    name: "המכתש הקטן",
     status: "קרב אחרון",
     hint: "פוצצו את ליבת החייזרים כדי להפיל את הפלישה.",
   },
@@ -1153,29 +1153,7 @@ function drawBaseBackground(time) {
   ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = "#a86667";
-  for (let i = 0; i < 6; i += 1) {
-    const x = i * 185 - 40;
-    const h = 90 + ((i % 3) * 24);
-    ctx.beginPath();
-    ctx.moveTo(x, GROUND_Y - 20);
-    ctx.lineTo(x + 100, GROUND_Y - h - 40);
-    ctx.lineTo(x + 210, GROUND_Y - 20);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  ctx.fillStyle = "#5c4353";
-  for (let i = 0; i < 7; i += 1) {
-    const x = i * 150 - 30;
-    const h = 120 + ((i % 4) * 24);
-    ctx.fillRect(x, GROUND_Y - h - 12, 70, h);
-    ctx.fillRect(x + 14, GROUND_Y - h - 58, 18, 46);
-    ctx.fillStyle = "rgba(255, 215, 160, 0.12)";
-    ctx.fillRect(x + 10, GROUND_Y - h + 18, 8, 10);
-    ctx.fillRect(x + 28, GROUND_Y - h + 34, 8, 10);
-    ctx.fillStyle = "#5c4353";
-  }
+  drawAradVista(time);
 
   ctx.fillStyle = "rgba(255, 212, 167, 0.13)";
   ctx.beginPath();
@@ -1197,6 +1175,128 @@ function drawBaseBackground(time) {
   ctx.fillRect(0, GROUND_Y - 120, WIDTH, 42);
   ctx.fillStyle = "rgba(255, 236, 214, 0.06)";
   ctx.fillRect(0, GROUND_Y - 82, WIDTH, 22);
+}
+
+function drawCamel(x, y, scale = 1, alpha = 0.55) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = "#493430";
+  ctx.fillRect(0, 12, 24, 8);
+  ctx.fillRect(6, 6, 7, 8);
+  ctx.fillRect(12, 4, 7, 10);
+  ctx.fillRect(22, 10, 8, 4);
+  ctx.fillRect(27, 6, 5, 10);
+  ctx.fillRect(4, 20, 3, 12);
+  ctx.fillRect(10, 20, 3, 12);
+  ctx.fillRect(17, 20, 3, 12);
+  ctx.fillRect(22, 20, 3, 12);
+  ctx.restore();
+}
+
+function drawJackal(x, y, scale = 1, alpha = 0.5) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = "#382a27";
+  ctx.fillRect(0, 10, 18, 6);
+  ctx.fillRect(16, 8, 8, 5);
+  ctx.fillRect(21, 4, 3, 4);
+  ctx.fillRect(17, 3, 3, 4);
+  ctx.fillRect(3, 16, 2, 8);
+  ctx.fillRect(10, 16, 2, 8);
+  ctx.fillRect(-5, 8, 6, 2);
+  ctx.restore();
+}
+
+function drawAradVista(time) {
+  ctx.fillStyle = "#b67e68";
+  for (let i = 0; i < 6; i += 1) {
+    const x = i * 185 - 40;
+    const h = 90 + ((i % 3) * 24);
+    ctx.beginPath();
+    ctx.moveTo(x, GROUND_Y - 18);
+    ctx.lineTo(x + 72, GROUND_Y - h - 10);
+    ctx.lineTo(x + 132, GROUND_Y - h + 6);
+    ctx.lineTo(x + 210, GROUND_Y - 18);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.fillStyle = "#94645b";
+  ctx.beginPath();
+  ctx.moveTo(0, GROUND_Y - 34);
+  ctx.lineTo(120, GROUND_Y - 76);
+  ctx.lineTo(250, GROUND_Y - 52);
+  ctx.lineTo(380, GROUND_Y - 108);
+  ctx.lineTo(550, GROUND_Y - 66);
+  ctx.lineTo(700, GROUND_Y - 118);
+  ctx.lineTo(860, GROUND_Y - 88);
+  ctx.lineTo(WIDTH, GROUND_Y - 36);
+  ctx.lineTo(WIDTH, GROUND_Y - 12);
+  ctx.lineTo(0, GROUND_Y - 12);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#705160";
+  ctx.beginPath();
+  ctx.moveTo(0, GROUND_Y - 8);
+  ctx.lineTo(86, GROUND_Y - 26);
+  ctx.lineTo(166, GROUND_Y - 18);
+  ctx.lineTo(230, GROUND_Y - 48);
+  ctx.lineTo(340, GROUND_Y - 32);
+  ctx.lineTo(420, GROUND_Y - 60);
+  ctx.lineTo(520, GROUND_Y - 36);
+  ctx.lineTo(640, GROUND_Y - 78);
+  ctx.lineTo(760, GROUND_Y - 56);
+  ctx.lineTo(860, GROUND_Y - 26);
+  ctx.lineTo(WIDTH, GROUND_Y - 10);
+  ctx.lineTo(WIDTH, GROUND_Y + 24);
+  ctx.lineTo(0, GROUND_Y + 24);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(146, 176, 192, 0.32)";
+  ctx.fillRect(720, GROUND_Y - 34, 150, 10);
+  ctx.fillStyle = "rgba(238, 248, 255, 0.16)";
+  ctx.fillRect(734, GROUND_Y - 32, 104, 2);
+
+  ctx.fillStyle = "#5f4853";
+  ctx.beginPath();
+  ctx.moveTo(96, GROUND_Y - 30);
+  ctx.lineTo(126, GROUND_Y - 66);
+  ctx.lineTo(150, GROUND_Y - 62);
+  ctx.lineTo(176, GROUND_Y - 28);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillRect(118, GROUND_Y - 62, 36, 8);
+  ctx.fillRect(126, GROUND_Y - 54, 8, 10);
+  ctx.fillRect(140, GROUND_Y - 54, 8, 10);
+
+  ctx.fillStyle = "#5c4353";
+  ctx.beginPath();
+  ctx.moveTo(764, GROUND_Y - 28);
+  ctx.lineTo(804, GROUND_Y - 94);
+  ctx.lineTo(840, GROUND_Y - 28);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillRect(818, GROUND_Y - 34, 22, 8);
+
+  ctx.fillStyle = "#654b55";
+  ctx.beginPath();
+  ctx.moveTo(590, GROUND_Y - 26);
+  ctx.lineTo(630, GROUND_Y - 86);
+  ctx.lineTo(665, GROUND_Y - 70);
+  ctx.lineTo(706, GROUND_Y - 24);
+  ctx.closePath();
+  ctx.fill();
+
+  drawCamel(246 + Math.sin(time * 0.5) * 10, GROUND_Y - 62, 1.2, 0.38);
+  drawCamel(280 + Math.sin(time * 0.5) * 10, GROUND_Y - 56, 0.92, 0.32);
+  drawJackal(612 - Math.sin(time * 0.6) * 8, GROUND_Y - 28, 1.05, 0.34);
+  drawJackal(646 - Math.sin(time * 0.6) * 8, GROUND_Y - 24, 0.85, 0.28);
 }
 
 function drawPlatforms() {
@@ -1260,6 +1360,14 @@ function drawStageScenery() {
     ctx.fillRect(54, 246, 340, 12);
     ctx.fillStyle = "rgba(255, 225, 170, 0.12)";
     ctx.fillRect(0, GROUND_Y - 40, WIDTH, 28);
+    ctx.fillStyle = "#74524a";
+    ctx.fillRect(132, 124, 162, 26);
+    ctx.fillStyle = "#e9d9b0";
+    ctx.fillRect(144, 132, 138, 10);
+    ctx.fillStyle = "#876352";
+    ctx.fillRect(402, 228, 96, 18);
+    ctx.fillRect(486, 236, 54, 10);
+    drawCamel(552, GROUND_Y - 42, 0.88, 0.5);
 
     if (state.exitGate) {
       ctx.fillStyle = state.exitGate.active ? "#e3d38d" : "#726658";
@@ -1384,6 +1492,23 @@ function drawStageScenery() {
       ctx.fillRect(62, 154, 210, 120);
       ctx.fillRect(336, 188, 180, 96);
       ctx.fillRect(560, 130, 236, 154);
+      ctx.fillStyle = "rgba(168, 196, 214, 0.28)";
+      ctx.fillRect(726, 202, 136, 10);
+      ctx.fillStyle = "#624951";
+      ctx.beginPath();
+      ctx.moveTo(780, 212);
+      ctx.lineTo(812, 166);
+      ctx.lineTo(846, 212);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillRect(806, 208, 22, 6);
+      ctx.beginPath();
+      ctx.moveTo(582, 154);
+      ctx.lineTo(632, 92);
+      ctx.lineTo(674, 116);
+      ctx.lineTo(716, 154);
+      ctx.closePath();
+      ctx.fill();
       ctx.fillStyle = "#c59a7d";
       ctx.fillRect(0, GROUND_Y - 10, WIDTH, 18);
       ctx.fillStyle = "rgba(255, 221, 183, 0.1)";
@@ -1408,6 +1533,28 @@ function drawStageScenery() {
     ctx.fillRect(690, 160, 170, 136);
     ctx.fillStyle = "rgba(255, 210, 170, 0.08)";
     ctx.fillRect(0, GROUND_Y - 46, WIDTH, 24);
+    ctx.fillStyle = "#6a4a43";
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y - 4);
+    ctx.lineTo(80, GROUND_Y - 66);
+    ctx.lineTo(152, GROUND_Y - 28);
+    ctx.lineTo(232, GROUND_Y - 84);
+    ctx.lineTo(320, GROUND_Y - 44);
+    ctx.lineTo(412, GROUND_Y - 102);
+    ctx.lineTo(516, GROUND_Y - 40);
+    ctx.lineTo(612, GROUND_Y - 88);
+    ctx.lineTo(704, GROUND_Y - 36);
+    ctx.lineTo(806, GROUND_Y - 76);
+    ctx.lineTo(900, GROUND_Y - 22);
+    ctx.lineTo(WIDTH, GROUND_Y - 2);
+    ctx.lineTo(WIDTH, GROUND_Y + 22);
+    ctx.lineTo(0, GROUND_Y + 22);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "rgba(164, 198, 214, 0.24)";
+    ctx.fillRect(736, GROUND_Y - 86, 114, 8);
+    drawJackal(118, GROUND_Y - 28, 1.2, 0.56);
+    drawJackal(808, GROUND_Y - 26, 1.06, 0.48);
 
     for (const nest of state.nests) {
       ctx.fillStyle = "#5a2d2c";
@@ -1425,8 +1572,25 @@ function drawStageScenery() {
     ctx.beginPath();
     ctx.arc(760, 200, 170, Math.PI, Math.PI * 2);
     ctx.fill();
+    ctx.fillStyle = "#6a483f";
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y + 8);
+    ctx.lineTo(124, GROUND_Y - 36);
+    ctx.lineTo(252, GROUND_Y - 18);
+    ctx.lineTo(392, GROUND_Y - 72);
+    ctx.lineTo(508, GROUND_Y - 22);
+    ctx.lineTo(620, GROUND_Y - 92);
+    ctx.lineTo(760, GROUND_Y - 30);
+    ctx.lineTo(920, GROUND_Y - 66);
+    ctx.lineTo(WIDTH, GROUND_Y - 10);
+    ctx.lineTo(WIDTH, HEIGHT);
+    ctx.lineTo(0, HEIGHT);
+    ctx.closePath();
+    ctx.fill();
     ctx.fillStyle = "rgba(255, 211, 179, 0.08)";
     ctx.fillRect(520, 104, 360, 20);
+    drawCamel(170, GROUND_Y - 46, 1.08, 0.34);
+    drawJackal(304, GROUND_Y - 22, 1.12, 0.3);
     if (state.core && state.core.hp > 0) {
       ctx.fillStyle = "#8d4a52";
       ctx.fillRect(state.core.x, state.core.y, state.core.width, state.core.height);
@@ -1584,6 +1748,12 @@ function drawSchoolScene() {
   ctx.fillRect(238, 230, 88, 52);
   ctx.fillStyle = "rgba(255, 231, 192, 0.18)";
   ctx.fillRect(100, 288, 300, 14);
+  ctx.fillStyle = "#74524a";
+  ctx.fillRect(132, 160, 164, 30);
+  ctx.fillStyle = "#ead8ad";
+  ctx.fillRect(148, 170, 132, 10);
+  drawCamel(476, 308, 0.94, 0.42);
+  drawJackal(540, 326, 0.9, 0.34);
 
   drawDetailedHuman(170, 300, {
     skin: "#f8c988",
