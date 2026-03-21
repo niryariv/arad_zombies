@@ -51,7 +51,7 @@ const stageDefs = [
   {
     name: "חצר קדם בערד",
     status: "בריחה",
-    hint: "חסלו 5 תלמידים נגועים ואז ברחו לשער המילוט.",
+    hint: "חסלו 5 זומבים ואז ברחו לשער המילוט.",
     objective: "killGate",
     target: 5,
     scenery: "kedemYard",
@@ -61,7 +61,7 @@ const stageDefs = [
   {
     name: "מגרש הכדורגל של קדם",
     status: "תאורה",
-    hint: "הפעילו 3 עמודי תאורה כדי לראות את הרצים הנגועים.",
+    hint: "הפעילו 3 עמודי תאורה כדי לראות את הזומבים רצים במגרש.",
     objective: "activate",
     target: 3,
     scenery: "football",
@@ -81,11 +81,11 @@ const stageDefs = [
   {
     name: "מרחב א-ג",
     status: "פינוי",
-    hint: "חסלו 6 נגועים קטנים והגיעו לדלת היציאה.",
+    hint: "חסלו 6 זומבים והגיעו לדלת היציאה.",
     objective: "killGate",
     target: 6,
     scenery: "agClass",
-    zombies: 5,
+    zombies: 6,
     aliens: 0,
   },
   {
@@ -141,7 +141,7 @@ const stageDefs = [
   {
     name: "מגרש הספורט",
     status: "הסתערות",
-    hint: "חסלו 7 שחקנים נגועים והגיעו לשער.",
+    hint: "חסלו 7 זומבים והגיעו לשער.",
     objective: "killGate",
     target: 7,
     scenery: "sportsField",
@@ -181,7 +181,7 @@ const stageDefs = [
   {
     name: "מרכז קניות צים",
     status: "פינוי",
-    hint: "חסלו 8 נגועים בין החנויות והגיעו ליציאה.",
+    hint: "חסלו 8 זומבים בין החנויות והגיעו ליציאה.",
     objective: "killGate",
     target: 8,
     scenery: "zim",
@@ -201,7 +201,7 @@ const stageDefs = [
   {
     name: "פאב המוזה",
     status: "הדיפה",
-    hint: "חסלו 8 נגועים סביב הבמה ופתחו את הדרך החוצה.",
+    hint: "חסלו 8 זומבים סביב הבמה ופתחו את הדרך החוצה.",
     objective: "killGate",
     target: 8,
     scenery: "pub",
@@ -516,7 +516,7 @@ function configureStage(index) {
 
   if (stage.objective === "killGate") {
     state.exitGate = { x: 892, y: GROUND_Y - 96, width: 42, height: 96, active: false };
-    setMission(`חסלו ${stage.target} נגועים ואז עברו לשער.`);
+    setMission(`חסלו ${stage.target} זומבים ואז עברו לשער.`);
   } else if (stage.objective === "activate") {
     state.generators = createActivationNodes(stage.target);
     setMission(`הפעילו ${stage.target} עמדות במקום.`);
@@ -1048,7 +1048,7 @@ function updateStageObjective() {
         completeStage(`המעבר מ-${stage.name} הושלם...`);
       }
     } else {
-      setMission(`חסלו עוד ${stage.target - state.stageKills} נגועים ואז ברחו לשער.`);
+      setMission(`חסלו עוד ${stage.target - state.stageKills} זומבים ואז ברחו לשער.`);
     }
   } else if (stage.objective === "activate") {
     for (const generator of state.generators) {
