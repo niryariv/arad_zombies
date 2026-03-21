@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Last Kid Standing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="intro">
+        <p class="eyebrow">Alien Fall // 1990s Pixel Survival</p>
+        <h1>Last Kid Standing</h1>
+        <p class="pitch">
+          ילד ששרד את אפוקליפסת החייזרים חייב לברוח מהזומבים, לאסוף נשימה,
+          ולבצע תנועת "אקדח" עם היד כדי לירות.
+        </p>
+        <ul class="controls">
+          <li><span>תנועה</span> חצים או WASD</li>
+          <li><span>קפיצה</span> רווח / W / חץ למעלה</li>
+          <li><span>ירי</span> מחוות עכבר או טאץ': ימינה ואז למעלה</li>
+          <li><span>אתחול</span> R</li>
+        </ul>
+      </section>
+
+      <section class="game-panel">
+        <div class="hud" aria-live="polite">
+          <div><span>חיים</span> <strong id="health">3</strong></div>
+          <div><span>גל</span> <strong id="wave">1</strong></div>
+          <div><span>חיסולים</span> <strong id="score">0</strong></div>
+          <div><span>מצב</span> <strong id="status">שורד</strong></div>
+        </div>
+        <canvas
+          id="game"
+          width="960"
+          height="540"
+          aria-label="משחק הישרדות רטרו"
+        ></canvas>
+        <p class="hint" id="hint">
+          בצעו גרירת L: קודם ימינה ואז למעלה, כדי לסמן ירי.
+        </p>
+      </section>
+    </main>
+
+    <script src="./game.js"></script>
+  </body>
+</html>
