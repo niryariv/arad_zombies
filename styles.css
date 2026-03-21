@@ -81,10 +81,19 @@ h1 {
 }
 
 .pitch,
+.story-beats li,
 .controls li,
 .hint {
   font-size: 0.62rem;
   line-height: 1.9;
+}
+
+.story-beats {
+  margin: 24px 0;
+  padding-right: 18px;
+  display: grid;
+  gap: 10px;
+  color: var(--muted);
 }
 
 .controls {
@@ -162,6 +171,7 @@ canvas {
   }
 
   .pitch,
+  .story-beats li,
   .controls li,
   .hint {
     font-size: 0.56rem;

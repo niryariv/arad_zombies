@@ -17,16 +17,43 @@ const ZOMBIE_BASE_SPEED = 70;
 
 const keys = new Set();
 
+const introSteps = [
+  {
+    until: 3.2,
+    title: "יום רגיל בבית הספר",
+    text: "הילד יושב בכיתה עם החברים שלו, עוד בוקר רגיל לפני האסון.",
+  },
+  {
+    until: 6.4,
+    title: "משהו מגיע מהשמיים",
+    text: "קרן חייזרית פוגעת בחצר. אנשים קורסים ואז קמים מחדש כזומבים.",
+  },
+  {
+    until: 9.8,
+    title: "בריחה לבונקר",
+    text: "הילד ננעל במקרה בבונקר יחד עם עוד כמה ניצולים שמנסים להחזיק מעמד.",
+  },
+  {
+    until: 13.2,
+    title: "האחרון שנשאר",
+    text: "הזומבים מוצאים גם אותם. החברים נופלים, והוא נשאר האדם האחרון.",
+  },
+];
+
 const state = {
   player: null,
   zombies: [],
   shots: [],
   particles: [],
   floatingTexts: [],
+  bunkerFriends: [],
   wave: 1,
   score: 0,
   time: 0,
   gameOver: false,
+  mode: "intro",
+  introTime: 0,
+  introStep: 0,
   spawnTimer: 0,
   invulnerableTimer: 0,
   gesture: {
@@ -60,24 +87,36 @@ function createPlayer() {
   };
 }
 
+function createBunkerFriends() {
+  return [
+    { x: 308, y: GROUND_Y - 54, infected: false },
+    { x: 372, y: GROUND_Y - 54, infected: false },
+    { x: 436, y: GROUND_Y - 54, infected: false },
+  ];
+}
+
 function resetGame() {
   state.player = createPlayer();
   state.zombies = [];
   state.shots = [];
   state.particles = [];
   state.floatingTexts = [];
+  state.bunkerFriends = createBunkerFriends();
   state.wave = 1;
   state.score = 0;
   state.time = 0;
   state.gameOver = false;
-  state.spawnTimer = 1;
+  state.mode = "intro";
+  state.introTime = 0;
+  state.introStep = 0;
+  state.spawnTimer = 1.1;
   state.invulnerableTimer = 0;
   state.gesture.active = false;
   state.gesture.points = [];
   state.gesture.progress = 0;
   state.gesture.cooldown = 0;
-  setStatus("שורד");
-  setHint('בצעו מחוות "אקדח": גרירה ימינה ואז למעלה.');
+  setStatus("פתיחה");
+  setHint("לחצו Enter או לחצו על המסך כדי להתחיל את סצנת הפתיחה.");
   syncHud();
 }
 
@@ -125,7 +164,7 @@ function spawnZombie() {
 }
 
 function fireShot() {
-  if (state.gameOver || state.gesture.cooldown > 0) {
+  if (state.gameOver || state.mode !== "survival" || state.gesture.cooldown > 0) {
     return;
   }
 
@@ -164,7 +203,7 @@ function addFloatingText(x, y, text, color) {
 }
 
 function damagePlayer() {
-  if (state.invulnerableTimer > 0 || state.gameOver) {
+  if (state.invulnerableTimer > 0 || state.gameOver || state.mode !== "survival") {
     return;
   }
 
@@ -183,9 +222,61 @@ function damagePlayer() {
 }
 
 function jumpPlayer() {
-  if (state.player.onGround && !state.gameOver) {
+  if (state.player.onGround && !state.gameOver && state.mode === "survival") {
     state.player.vy = -JUMP_FORCE;
     state.player.onGround = false;
+  }
+}
+
+function startIntro() {
+  if (state.mode !== "intro" || state.introTime > 0) {
+    return;
+  }
+
+  state.introTime = 0.01;
+  setStatus("פלישה");
+  setHint("Enter כדי לדלג ישירות לבונקר.");
+}
+
+function beginSurvivalMode() {
+  if (state.mode === "survival") {
+    return;
+  }
+
+  state.mode = "survival";
+  state.player.x = 160;
+  state.player.y = 220;
+  state.player.vx = 0;
+  state.player.vy = 0;
+  state.player.facing = 1;
+  setStatus("שורד");
+  setHint('בצעו מחוות "אקדח": גרירה ימינה ואז למעלה.');
+}
+
+function updateIntro(dt) {
+  if (state.introTime <= 0) {
+    return;
+  }
+
+  state.introTime += dt;
+
+  for (let i = 0; i < introSteps.length; i += 1) {
+    if (state.introTime <= introSteps[i].until) {
+      state.introStep = i;
+      break;
+    }
+    state.introStep = introSteps.length - 1;
+  }
+
+  if (state.introTime > 8.2) {
+    const infection = clamp((state.introTime - 8.2) / 3, 0, 1);
+    state.bunkerFriends.forEach((friend, index) => {
+      friend.infected = infection > 0.2 + index * 0.18;
+    });
+  }
+
+  if (state.introTime >= introSteps[introSteps.length - 1].until) {
+    beginSurvivalMode();
   }
 }
 
@@ -384,7 +475,7 @@ function moveGesture(clientX, clientY) {
 function endGesture() {
   state.gesture.active = false;
   state.gesture.points = [];
-  if (state.gesture.progress < 2) {
+  if (state.mode === "survival" && state.gesture.progress < 2) {
     setHint('המחווה לא הושלמה. נסו שוב: ימינה ואז למעלה.');
   }
   state.gesture.progress = 0;
@@ -542,8 +633,179 @@ function drawGestureTrail() {
   ctx.stroke();
 }
 
+function drawSchoolScene() {
+  ctx.fillStyle = "#705636";
+  ctx.fillRect(90, 190, 320, 190);
+  ctx.fillStyle = "#d1b98f";
+  ctx.fillRect(110, 210, 280, 150);
+  ctx.fillStyle = "#4778a8";
+  ctx.fillRect(128, 230, 88, 52);
+  ctx.fillRect(238, 230, 88, 52);
+
+  drawPixelFigure(170, 300, {
+    skin: "#f8c988",
+    hair: "#23130b",
+    shirt: "#6cc6ff",
+    pants: "#f1e0a6",
+    boots: "#54351a",
+    arm: "#f8c988",
+  });
+  drawPixelFigure(242, 300, {
+    skin: "#efc37f",
+    hair: "#553015",
+    shirt: "#f88dad",
+    pants: "#87c9ff",
+    boots: "#54351a",
+    arm: "#efc37f",
+  });
+  drawPixelFigure(314, 300, {
+    skin: "#d4a269",
+    hair: "#1f1913",
+    shirt: "#b2ff75",
+    pants: "#d7d0ff",
+    boots: "#54351a",
+    arm: "#d4a269",
+  });
+}
+
+function drawAlienStrikeScene() {
+  drawSchoolScene();
+  const beamWidth = 110 + Math.sin(state.time * 22) * 12;
+  ctx.fillStyle = "rgba(127, 255, 240, 0.25)";
+  ctx.beginPath();
+  ctx.moveTo(750, 30);
+  ctx.lineTo(750 - beamWidth, 360);
+  ctx.lineTo(750 + beamWidth, 360);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#a7fff7";
+  ctx.fillRect(710, 24, 80, 18);
+  ctx.fillRect(730, 12, 38, 16);
+
+  drawPixelFigure(242, 300, {
+    skin: "#899a79",
+    hair: "#2e3c26",
+    shirt: "#89ffd2",
+    pants: "#5f3d73",
+    boots: "#352220",
+    arm: "#95a68c",
+  });
+  drawPixelFigure(314, 300, {
+    skin: "#899a79",
+    hair: "#2e3c26",
+    shirt: "#9df57a",
+    pants: "#5f3d73",
+    boots: "#352220",
+    arm: "#95a68c",
+  });
+}
+
+function drawBunkerScene() {
+  ctx.fillStyle = "#2f372e";
+  ctx.fillRect(180, 130, 420, 280);
+  ctx.fillStyle = "#556455";
+  ctx.fillRect(210, 160, 360, 220);
+  ctx.fillStyle = "#83907d";
+  ctx.fillRect(470, 180, 54, 120);
+  ctx.fillStyle = "#ffb347";
+  ctx.fillRect(495, 210, 8, 8);
+
+  drawPixelFigure(240, GROUND_Y - 54, {
+    skin: "#f8c988",
+    hair: "#23130b",
+    shirt: "#6cc6ff",
+    pants: "#f1e0a6",
+    boots: "#54351a",
+    arm: "#f8c988",
+  });
+
+  state.bunkerFriends.forEach((friend, index) => {
+    const shirt = friend.infected
+      ? index % 2 === 0
+        ? "#9df57a"
+        : "#89ffd2"
+      : ["#f88dad", "#b2ff75", "#ffd36c"][index];
+    const skin = friend.infected
+      ? "#899a79"
+      : ["#efc37f", "#d4a269", "#f1c087"][index];
+    const hair = friend.infected
+      ? "#2e3c26"
+      : ["#553015", "#1f1913", "#4d3020"][index];
+
+    drawPixelFigure(friend.x, friend.y, {
+      skin,
+      hair,
+      shirt,
+      pants: friend.infected ? "#5f3d73" : "#d7d0ff",
+      boots: "#352220",
+      arm: skin,
+    });
+
+    if (friend.infected) {
+      ctx.fillStyle = "rgba(127, 255, 240, 0.16)";
+      ctx.fillRect(friend.x - 8, friend.y - 12, 44, 72);
+    }
+  });
+}
+
+function wrapPixelText(text, x, y, maxWidth, lineHeight) {
+  const words = text.split(" ");
+  let line = "";
+  let currentY = y;
+
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (ctx.measureText(candidate).width > maxWidth && line) {
+      ctx.fillText(line, x, currentY);
+      line = word;
+      currentY += lineHeight;
+    } else {
+      line = candidate;
+    }
+  }
+
+  if (line) {
+    ctx.fillText(line, x, currentY);
+  }
+}
+
+function drawIntroScene() {
+  if (state.introTime <= 0) {
+    drawSchoolScene();
+  } else if (state.introTime <= 6.4) {
+    drawAlienStrikeScene();
+  } else {
+    drawBunkerScene();
+  }
+
+  const step = introSteps[state.introStep];
+  ctx.fillStyle = "rgba(0, 0, 0, 0.62)";
+  ctx.fillRect(36, HEIGHT - 150, WIDTH - 72, 100);
+  ctx.strokeStyle = "#ffb347";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(36, HEIGHT - 150, WIDTH - 72, 100);
+
+  ctx.direction = "rtl";
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#f6edcf";
+  ctx.font = '16px "Press Start 2P"';
+  ctx.fillText(step.title, WIDTH - 70, HEIGHT - 112);
+  ctx.font = '11px "Press Start 2P"';
+  wrapPixelText(step.text, WIDTH - 70, HEIGHT - 84, WIDTH - 150, 24);
+  ctx.direction = "ltr";
+  ctx.textAlign = "start";
+
+  if (state.introTime <= 0) {
+    ctx.textAlign = "center";
+    ctx.font = '14px "Press Start 2P"';
+    ctx.fillText("PRESS ENTER", WIDTH / 2, HEIGHT / 2 + 120);
+    ctx.textAlign = "start";
+  }
+}
+
 function drawOverlay() {
-  if (!state.gameOver) {
+  if (state.mode === "intro" || !state.gameOver) {
     return;
   }
 
@@ -560,7 +822,9 @@ function drawOverlay() {
 }
 
 function update(dt) {
-  if (!state.gameOver) {
+  if (state.mode === "intro") {
+    updateIntro(dt);
+  } else if (!state.gameOver) {
     updatePlayer(dt);
     updateZombies(dt);
     updateShots(dt);
@@ -571,11 +835,15 @@ function update(dt) {
 
 function render() {
   drawBackground(state.time);
-  drawZombies();
-  drawPlayer();
-  drawShots();
-  drawEffects();
-  drawGestureTrail();
+  if (state.mode === "intro") {
+    drawIntroScene();
+  } else {
+    drawZombies();
+    drawPlayer();
+    drawShots();
+    drawEffects();
+    drawGestureTrail();
+  }
   drawOverlay();
 }
 
@@ -592,6 +860,14 @@ function frame(now) {
 }
 
 window.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    if (state.mode === "intro" && state.introTime <= 0) {
+      startIntro();
+    } else if (state.mode === "intro") {
+      beginSurvivalMode();
+    }
+  }
+
   if (["ArrowUp", "w", "W", " "].includes(event.key)) {
     jumpPlayer();
   }
@@ -608,6 +884,15 @@ window.addEventListener("keyup", (event) => {
 });
 
 canvas.addEventListener("pointerdown", (event) => {
+  if (state.mode === "intro") {
+    if (state.introTime <= 0) {
+      startIntro();
+    } else {
+      beginSurvivalMode();
+    }
+    return;
+  }
+
   beginGesture(event.clientX, event.clientY);
 });
 
