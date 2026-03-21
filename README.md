@@ -1,21 +1,21 @@
-# Last Kid Standing
+# Arad Zombies
 
-Retro browser game inspired by 1990s pixel platformers: a lone kid survives an alien apocalypse, dodges zombie waves, and fires only after completing a gun-hand gesture.
+Retro browser game set in Arad: a lone kid survives an alien apocalypse, fights zombie waves across local landmarks, and pushes toward the final showdown.
 
 ## Play
 
 - Move with `WASD` or arrow keys
 - Jump with `Space`, `W`, or `ArrowUp`
-- Shoot by dragging a gesture on the canvas: first right, then up
+- Shoot with `Space` or right click
 - Restart with `R`
 
 ## Run locally
 
-Open [index.html](/Users/niryariv/Projects/shahar_games/index.html) in a browser, or serve the folder with any static server.
+Open [index.html](/Users/niryariv/Projects/arad_zombies/index.html) in a browser, or serve the folder with any static server.
 
 ## GitHub Pages
 
-The repo includes [deploy.yml](/Users/niryariv/Projects/shahar_games/.github/workflows/deploy.yml), which deploys the project to GitHub Pages on every push to `main`.
+The repo includes [deploy.yml](/Users/niryariv/Projects/arad_zombies/.github/workflows/deploy.yml), which deploys the project to GitHub Pages on every push to `main`.
 
 After pushing to GitHub:
 
