@@ -45,27 +45,172 @@ const stageDefs = [
   {
     name: "חצר קדם בערד",
     status: "בריחה",
-    hint: "חסלו 5 זומבים ואז ברחו דרך השער מימין.",
+    hint: "חסלו 5 תלמידים נגועים ואז ברחו לשער המילוט.",
+    objective: "killGate",
+    target: 5,
+    scenery: "kedemYard",
+    zombies: 5,
+    aliens: 0,
   },
   {
-    name: "בונקר הואדיות",
-    status: "שחזור חשמל",
-    hint: "געו בשלושת הגנרטורים כדי להדליק את הבונקר.",
+    name: "מגרש הכדורגל של קדם",
+    status: "תאורה",
+    hint: "הפעילו 3 עמודי תאורה כדי לראות את הרצים הנגועים.",
+    objective: "activate",
+    target: 3,
+    scenery: "football",
+    zombies: 4,
+    aliens: 0,
   },
   {
-    name: "רכס הר עמשא",
-    status: "אות מצוקה",
-    hint: "הדליקו שני משדרים, צרו קשר עם שורד, והגיעו לבונקר שלו.",
+    name: "הגן",
+    status: "טיהור",
+    hint: "השמידו 3 קינים בין המגלשות והנדנדות.",
+    objective: "destroy",
+    target: 3,
+    scenery: "kindergarten",
+    zombies: 5,
+    aliens: 0,
   },
   {
-    name: "ואדי מצדה",
-    status: "טיהור הקינים",
-    hint: "פוצצו את שלושת קיני הזוהמה לפני שהרחוב קורס.",
+    name: "מרחב א-ג",
+    status: "פינוי",
+    hint: "חסלו 6 נגועים קטנים והגיעו לדלת היציאה.",
+    objective: "killGate",
+    target: 6,
+    scenery: "agClass",
+    zombies: 5,
+    aliens: 0,
   },
   {
-    name: "המכתש הקטן",
+    name: "מרחב ד-ו",
+    status: "נעילה",
+    hint: "הפעילו 3 לוחות כריזה כדי לאטום את האזור.",
+    objective: "activate",
+    target: 3,
+    scenery: "dvClass",
+    zombies: 6,
+    aliens: 0,
+  },
+  {
+    name: "התיכון",
+    status: "קשר",
+    hint: "הדליקו 2 אנטנות, צרו קשר עם שורד, והגיעו אליו.",
+    objective: "beaconContact",
+    target: 2,
+    scenery: "highSchool",
+    zombies: 5,
+    aliens: 1,
+  },
+  {
+    name: "החצר",
+    status: "טיהור",
+    hint: "השמידו 3 קיני זוהמה ליד הסככה והעצים.",
+    objective: "destroy",
+    target: 3,
+    scenery: "courtyard",
+    zombies: 6,
+    aliens: 1,
+  },
+  {
+    name: "המתנ\"ס",
+    status: "חילוץ",
+    hint: "הפעילו 3 ארונות חילוץ כדי לפתוח את אגף המקלטים.",
+    objective: "activate",
+    target: 3,
+    scenery: "matnas",
+    zombies: 6,
+    aliens: 1,
+  },
+  {
+    name: "תפוח פיס",
+    status: "ניקוי רשת",
+    hint: "השמידו 3 קני פלישה בין המחשבים והמסכים.",
+    objective: "destroy",
+    target: 3,
+    scenery: "pis",
+    zombies: 5,
+    aliens: 2,
+  },
+  {
+    name: "מגרש הספורט",
+    status: "הסתערות",
+    hint: "חסלו 7 שחקנים נגועים והגיעו לשער.",
+    objective: "killGate",
+    target: 7,
+    scenery: "sportsField",
+    zombies: 6,
+    aliens: 1,
+  },
+  {
+    name: "הקניון",
+    status: "טיהור",
+    hint: "השמידו 3 קיני זוהמה בין החנויות.",
+    objective: "destroy",
+    target: 3,
+    scenery: "mall",
+    zombies: 6,
+    aliens: 2,
+  },
+  {
+    name: "הספריה",
+    status: "שחזור מידע",
+    hint: "הפעילו 3 עמדות ארכיון כדי לאתר את מקור הפלישה.",
+    objective: "activate",
+    target: 3,
+    scenery: "library",
+    zombies: 5,
+    aliens: 1,
+  },
+  {
+    name: "חוג רובוטיקה במתנ\"ס",
+    status: "הפעלה",
+    hint: "הפעילו 3 ספסלי רובוטיקה כדי לייצב את עוזר הקרב.",
+    objective: "activate",
+    target: 3,
+    scenery: "robotics",
+    zombies: 6,
+    aliens: 2,
+  },
+  {
+    name: "מרכז קניות צים",
+    status: "פינוי",
+    hint: "חסלו 8 נגועים בין החנויות והגיעו ליציאה.",
+    objective: "killGate",
+    target: 8,
+    scenery: "zim",
+    zombies: 7,
+    aliens: 1,
+  },
+  {
+    name: "שופרסל",
+    status: "אבטחה",
+    hint: "השמידו 3 קינים בין המדפים והמקררים.",
+    objective: "destroy",
+    target: 3,
+    scenery: "supermarket",
+    zombies: 6,
+    aliens: 2,
+  },
+  {
+    name: "פאב המוזה",
+    status: "הדיפה",
+    hint: "חסלו 8 נגועים סביב הבמה ופתחו את הדרך החוצה.",
+    objective: "killGate",
+    target: 8,
+    scenery: "pub",
+    zombies: 7,
+    aliens: 2,
+  },
+  {
+    name: "פיצה כפרוצ׳קה",
     status: "קרב אחרון",
-    hint: "פוצצו את ליבת החייזרים כדי להפיל את הפלישה.",
+    hint: "פוצצו את ליבת החייזרים שנבנתה בתוך הטאבון.",
+    objective: "boss",
+    target: 16,
+    scenery: "pizza",
+    zombies: 6,
+    aliens: 3,
   },
 ];
 
@@ -177,7 +322,7 @@ function resetGame() {
 
 function syncHud() {
   healthEl.textContent = "לבבות";
-  waveEl.textContent = state.stageIndex >= 0 ? `${state.stageIndex + 1}/5` : "0/5";
+  waveEl.textContent = state.stageIndex >= 0 ? `${state.stageIndex + 1}/${stageDefs.length}` : `0/${stageDefs.length}`;
   scoreEl.textContent = String(state.score);
   missionEl.textContent = state.mission;
 }
@@ -238,7 +383,92 @@ function resolvePlatformLanding(entity, previousY) {
   return true;
 }
 
+function currentStageDef() {
+  return stageDefs[state.stageIndex];
+}
+
+function createActivationNodes(count) {
+  const positions = [
+    { x: 168, y: 300 },
+    { x: 390, y: 242 },
+    { x: 620, y: 208 },
+    { x: 794, y: 288 },
+  ];
+  return positions.slice(0, count).map((pos) => ({
+    x: pos.x,
+    y: pos.y,
+    width: 32,
+    height: 40,
+    active: false,
+  }));
+}
+
+function createNestSet(count) {
+  const positions = [
+    { x: 214, y: 288 },
+    { x: 502, y: 230 },
+    { x: 788, y: 288 },
+    { x: 650, y: 176 },
+  ];
+  return positions.slice(0, count).map((pos) => ({
+    x: pos.x,
+    y: pos.y,
+    width: 44,
+    height: 38,
+    hp: 4,
+    maxHp: 4,
+  }));
+}
+
+function createBeaconSet(count) {
+  const positions = [
+    { x: 148, y: 248 },
+    { x: 694, y: 156 },
+    { x: 812, y: 278 },
+  ];
+  return positions.slice(0, count).map((pos) => ({
+    x: pos.x,
+    y: pos.y,
+    width: 28,
+    height: 52,
+    active: false,
+  }));
+}
+
+function getSpawnPoints(index) {
+  const sets = [
+    [
+      { x: 540, y: GROUND_Y - 56, side: 1 },
+      { x: 620, y: GROUND_Y - 56, side: 1 },
+      { x: 700, y: GROUND_Y - 56, side: 1 },
+      { x: 820, y: GROUND_Y - 56, side: 1 },
+      { x: 610, y: 192, side: 1 },
+    ],
+    [
+      { x: 760, y: GROUND_Y - 56, side: 1 },
+      { x: 640, y: 192, side: 1 },
+      { x: 420, y: 226, side: 1 },
+      { x: 220, y: 284, side: -1 },
+    ],
+    [
+      { x: 170, y: 284, side: -1 },
+      { x: 420, y: 226, side: 1 },
+      { x: 648, y: 192, side: 1 },
+      { x: 820, y: 284, side: 1 },
+    ],
+    [
+      { x: 180, y: GROUND_Y - 56, side: -1 },
+      { x: 420, y: 226, side: 1 },
+      { x: 640, y: 192, side: 1 },
+      { x: 830, y: GROUND_Y - 56, side: 1 },
+    ],
+  ];
+  return sets[index % sets.length];
+}
+
 function configureStage(index) {
+  const stage = stageDefs[index];
+
   state.stageIndex = index;
   state.wave = index + 1;
   state.stageKills = 0;
@@ -267,27 +497,20 @@ function configureStage(index) {
   state.player.facing = 1;
   state.player.hp = clamp(state.player.hp + (index > 0 ? 1 : 0), 1, 3);
 
-  if (index === 0) {
-    state.player.x = 120;
-    state.player.y = 220;
+  state.player.x = 120;
+  state.player.y = 220;
+
+  if (stage.objective === "killGate") {
     state.exitGate = { x: 892, y: GROUND_Y - 96, width: 42, height: 96, active: false };
-    setMission("פרק 1: חסלו 5 זומבים ואז עברו דרך שער המילוט.");
-  } else if (index === 1) {
-    state.player.x = 130;
-    state.player.y = 220;
-    state.generators = [
-      { x: 168, y: 300, width: 32, height: 40, active: false },
-      { x: 390, y: 242, width: 32, height: 40, active: false },
-      { x: 620, y: 208, width: 32, height: 40, active: false },
-    ];
-    setMission("הפעילו 3 גנרטורים בבונקר.");
-  } else if (index === 2) {
-    state.player.x = 120;
-    state.player.y = 220;
-    state.beacons = [
-      { x: 148, y: 248, width: 28, height: 52, active: false },
-      { x: 694, y: 156, width: 28, height: 52, active: false },
-    ];
+    setMission(`חסלו ${stage.target} נגועים ואז עברו לשער.`);
+  } else if (stage.objective === "activate") {
+    state.generators = createActivationNodes(stage.target);
+    setMission(`הפעילו ${stage.target} עמדות במקום.`);
+  } else if (stage.objective === "destroy") {
+    state.nests = createNestSet(stage.target);
+    setMission(`השמידו ${stage.target} מוקדי פלישה.`);
+  } else if (stage.objective === "beaconContact") {
+    state.beacons = createBeaconSet(stage.target);
     state.survivor = {
       x: 816,
       y: 284,
@@ -298,25 +521,14 @@ function configureStage(index) {
       inBunker: false,
       recruited: false,
     };
-    setMission("הדליקו 2 משדרים על הגגות.");
-  } else if (index === 3) {
-    state.player.x = 110;
-    state.player.y = 220;
-    state.nests = [
-      { x: 214, y: 288, width: 44, height: 38, hp: 4, maxHp: 4 },
-      { x: 502, y: 230, width: 44, height: 38, hp: 4, maxHp: 4 },
-      { x: 788, y: 288, width: 44, height: 38, hp: 4, maxHp: 4 },
-    ];
-    setMission("השמידו 3 קיני זוהמה ברחוב.");
-  } else if (index === 4) {
-    state.player.x = 110;
-    state.player.y = 220;
-    state.core = { x: 758, y: 112, width: 96, height: 96, hp: 14, maxHp: 14 };
-    setMission("השמידו את ליבת החייזרים לפני שהנחיל סוגר עליכם.");
+    setMission(`הדליקו ${stage.target} אנטנות וצאו לקשר.`);
+  } else if (stage.objective === "boss") {
+    state.core = { x: 758, y: 112, width: 96, height: 96, hp: stage.target, maxHp: stage.target };
+    setMission("השמידו את ליבת החייזרים בתוך הטאבון.");
   }
 
-  setStatus(stageDefs[index].status);
-  setHint(stageDefs[index].hint);
+  setStatus(stage.status);
+  setHint(stage.hint);
   state.ally = existingAlly?.active
     ? { ...existingAlly, x: state.player.x + 54, y: state.player.y, shootCooldown: 0 }
     : null;
@@ -350,7 +562,7 @@ function spawnZombie(options = {}) {
     vx: side < 0 ? speed : -speed,
     vy: 0,
     speed,
-    hp: state.stageIndex === 2 ? 2 : 1,
+    hp: state.stageIndex >= 8 ? 2 : 1,
     tint: Math.random() < 0.5 ? "#9df57a" : "#89ffd2",
   });
 }
@@ -369,65 +581,13 @@ function spawnAlienDrone() {
 }
 
 function seedStageEnemies() {
-  if (state.stageIndex === 0) {
-    const spawnPoints = [
-      { x: 540, y: GROUND_Y - 56, side: 1 },
-      { x: 620, y: GROUND_Y - 56, side: 1 },
-      { x: 700, y: GROUND_Y - 56, side: 1 },
-      { x: 820, y: GROUND_Y - 56, side: 1 },
-      { x: 610, y: 192, side: 1 },
-    ];
-    while (state.zombies.length < 5) {
-      spawnZombie(spawnPoints[state.zombies.length % spawnPoints.length]);
-    }
-  } else if (state.stageIndex === 1) {
-    const spawnPoints = [
-      { x: 760, y: GROUND_Y - 56, side: 1 },
-      { x: 640, y: 192, side: 1 },
-      { x: 420, y: 226, side: 1 },
-      { x: 220, y: 284, side: -1 },
-    ];
-    while (state.zombies.length < 4) {
-      spawnZombie(spawnPoints[state.zombies.length % spawnPoints.length]);
-    }
-  } else if (state.stageIndex === 2) {
-    const spawnPoints = [
-      { x: 170, y: 284, side: -1 },
-      { x: 420, y: 226, side: 1 },
-      { x: 648, y: 192, side: 1 },
-      { x: 820, y: 284, side: 1 },
-    ];
-    while (state.zombies.length < 4) {
-      spawnZombie(spawnPoints[state.zombies.length % spawnPoints.length]);
-    }
-    while (state.aliens.length < 1) {
-      spawnAlienDrone();
-    }
-  } else if (state.stageIndex === 3) {
-    const spawnPoints = [
-      { x: 180, y: GROUND_Y - 56, side: -1 },
-      { x: 420, y: 226, side: 1 },
-      { x: 640, y: 192, side: 1 },
-      { x: 830, y: GROUND_Y - 56, side: 1 },
-    ];
-    while (state.zombies.length < 5) {
-      spawnZombie(spawnPoints[state.zombies.length % spawnPoints.length]);
-    }
-    while (state.aliens.length < 2) {
-      spawnAlienDrone();
-    }
-  } else if (state.stageIndex === 4) {
-    const spawnPoints = [
-      { x: 690, y: GROUND_Y - 56, side: 1 },
-      { x: 810, y: GROUND_Y - 56, side: 1 },
-      { x: 610, y: 192, side: 1 },
-    ];
-    while (state.zombies.length < 3) {
-      spawnZombie(spawnPoints[state.zombies.length % spawnPoints.length]);
-    }
-    while (state.aliens.length < 2) {
-      spawnAlienDrone();
-    }
+  const stage = currentStageDef();
+  const spawnPoints = getSpawnPoints(state.stageIndex);
+  while (state.zombies.length < stage.zombies) {
+    spawnZombie(spawnPoints[state.zombies.length % spawnPoints.length]);
+  }
+  while (state.aliens.length < stage.aliens) {
+    spawnAlienDrone();
   }
 }
 
@@ -675,7 +835,7 @@ function updateAliens(dt) {
 }
 
 function updateAlly(dt) {
-  if (!state.ally?.active || state.stageIndex < 3) {
+  if (!state.ally?.active) {
     return;
   }
 
@@ -686,7 +846,7 @@ function updateAlly(dt) {
   ally.shootCooldown = Math.max(0, ally.shootCooldown - dt);
 
   const targets = [...state.zombies, ...state.aliens];
-  if (state.stageIndex === 4 && state.core?.hp > 0) {
+  if (state.core?.hp > 0) {
     targets.push({
       x: state.core.x + state.core.width / 2,
       y: state.core.y + state.core.height / 2,
@@ -773,7 +933,7 @@ function updateShots(dt) {
       continue;
     }
 
-    if (state.stageIndex === 3) {
+    if (state.nests.length > 0) {
       for (const nest of state.nests) {
         if (nest.hp <= 0 || !rectsOverlap(shot, nest)) {
           continue;
@@ -804,7 +964,7 @@ function updateShots(dt) {
       if (state.core.hp <= 0) {
         triggerVictory();
       } else {
-        setMission(`השמידו את ליבת החייזרים. נותרו ${state.core.hp} פגיעות.`);
+        setMission(`פוצצו את ליבת החייזרים. נשארו ${state.core.hp} פגיעות.`);
       }
     }
   }
@@ -842,17 +1002,19 @@ function updateEffects(dt) {
 }
 
 function updateStageObjective() {
-  if (state.stageIndex === 0) {
-    if (state.stageKills >= 5) {
+  const stage = currentStageDef();
+
+  if (stage.objective === "killGate") {
+    if (state.stageKills >= stage.target) {
       state.exitGate.active = true;
-      setMission("השער נפתח. הגיעו אליו כדי לעבור לבונקר.");
+      setMission("השער נפתח. הגיעו אליו כדי לעבור למסך הבא.");
       if (rectsOverlap(state.player, state.exitGate)) {
-        completeStage("השער נסגר מאחוריכם. מעבר לבונקר...");
+        completeStage(`המעבר מ-${stage.name} הושלם...`);
       }
     } else {
-      setMission(`פרק 1: חסלו עוד ${5 - state.stageKills} זומבים ואז ברחו לשער.`);
+      setMission(`חסלו עוד ${stage.target - state.stageKills} נגועים ואז ברחו לשער.`);
     }
-  } else if (state.stageIndex === 1) {
+  } else if (stage.objective === "activate") {
     for (const generator of state.generators) {
       if (!generator.active && rectsOverlap(state.player, generator)) {
         generator.active = true;
@@ -863,11 +1025,11 @@ function updateStageObjective() {
 
     const activeCount = state.generators.filter((generator) => generator.active).length;
     if (activeCount >= state.generators.length) {
-      completeStage("הבונקר נדלק. המסלול האחרון נפתח החוצה...");
+      completeStage(`השלב ב-${stage.name} נפתח הלאה...`);
     } else {
-      setMission(`הפעילו ${state.generators.length - activeCount} גנרטורים נוספים.`);
+      setMission(`הפעילו עוד ${state.generators.length - activeCount} עמדות ב-${stage.name}.`);
     }
-  } else if (state.stageIndex === 2) {
+  } else if (stage.objective === "beaconContact") {
     for (const beacon of state.beacons) {
       if (!beacon.active && rectsOverlap(state.player, beacon)) {
         beacon.active = true;
@@ -889,8 +1051,8 @@ function updateStageObjective() {
         state.survivor.y = GROUND_Y - state.survivor.height;
       }
 
-      setMission("הגעתם לבונקר. דברו עם השורד.");
-      setHint("התקרבו לשורד כדי לשמוע מה באמת קרה.");
+      setMission("הגעתם לחדר הקשר. דברו עם השורד.");
+      setHint("התקרבו לשורד כדי לשמוע מה קרה בעיר.");
       if (!state.survivor.contacted && rectsOverlap(state.player, state.survivor)) {
         state.survivor.contacted = true;
         state.survivor.recruited = true;
@@ -905,23 +1067,23 @@ function updateStageObjective() {
         };
         state.dialogueTimer = 6.4;
         state.dialogueText =
-          "השורד: הקרן מהשמיים הייתה משדר של שליטה. הליבה במכתש מפעילה גם את הזומבים וגם את החייזרים. אני בא איתך.";
+          "השורד: ערד נפלה כי הקרן שיבשה את כל המערכות. הליבה האחרונה מתחבאת בפיצה כפרוצ׳קה. אני איתך.";
         setStatus("שיחה");
         setHint("אחרי השיחה הוא יצטרף אליכם לקרב.");
-        completeStage("השורד הצטרף. עכשיו אתם יוצאים יחד לטהר את הרחוב...");
+        completeStage("השורד הצטרף. ממשיכים יחד דרך אתרי העיר...");
         state.transitionTimer = 6.4;
       }
     } else {
-      setMission(`הדליקו ${state.beacons.length - activeCount} משדרים נוספים.`);
+      setMission(`הדליקו עוד ${state.beacons.length - activeCount} אנטנות.`);
     }
-  } else if (state.stageIndex === 3) {
+  } else if (stage.objective === "destroy") {
     if (state.nests.length === 0) {
-      completeStage("הקינים התפרקו. הדרך למכתש נפתחה...");
+      completeStage(`מוקדי הפלישה ב-${stage.name} הושמדו...`);
     } else {
-      setMission(`השמידו עוד ${state.nests.length} קיני זוהמה.`);
+      setMission(`השמידו עוד ${state.nests.length} מוקדי פלישה ב-${stage.name}.`);
     }
-  } else if (state.stageIndex === 4 && state.core && state.core.hp > 0) {
-    setMission(`פוצצו את ליבת החייזרים. נשארו ${state.core.hp} פגיעות.`);
+  } else if (stage.objective === "boss" && state.core && state.core.hp > 0) {
+    setMission(`פוצצו את ליבת החייזרים בטאבון. נשארו ${state.core.hp} פגיעות.`);
   }
 }
 
@@ -930,64 +1092,69 @@ function updateSpawns(dt) {
     return;
   }
 
+  const stage = currentStageDef();
   state.spawnTimer -= dt;
   state.alienSpawnTimer -= dt;
 
-  if (state.stageIndex === 0) {
-    if (state.zombies.length === 0 && state.stageKills < 5) {
+  if (stage.objective === "killGate") {
+    if (state.zombies.length === 0 && state.stageKills < stage.target) {
       seedStageEnemies();
     }
-    if (state.stageKills < 5 && state.zombies.length < 5 && state.spawnTimer <= 0) {
+    if (state.stageKills < stage.target && state.zombies.length < stage.zombies && state.spawnTimer <= 0) {
       spawnZombie();
       state.spawnTimer = 0.7 + Math.random() * 0.45;
     }
-  } else if (state.stageIndex === 1) {
+  } else if (stage.objective === "activate") {
     const activeCount = state.generators.filter((generator) => generator.active).length;
     if (activeCount < state.generators.length && state.zombies.length === 0) {
       seedStageEnemies();
     }
-    if (activeCount < state.generators.length && state.zombies.length < 6 && state.spawnTimer <= 0) {
+    if (activeCount < state.generators.length && state.zombies.length < stage.zombies && state.spawnTimer <= 0) {
       spawnZombie();
       state.spawnTimer = 0.95 + Math.random() * 0.55;
     }
-  } else if (state.stageIndex === 2) {
+    if (stage.aliens > 0 && state.aliens.length < stage.aliens && state.alienSpawnTimer <= 0) {
+      spawnAlienDrone();
+      state.alienSpawnTimer = 2 + Math.random() * 1.1;
+    }
+  } else if (stage.objective === "beaconContact") {
     if (state.survivor?.inBunker) {
       state.zombies = [];
       state.aliens = [];
       return;
     }
-    if (state.zombies.length === 0 || state.aliens.length === 0) {
+    if (state.zombies.length === 0 || (stage.aliens > 0 && state.aliens.length === 0)) {
       seedStageEnemies();
     }
-    if (state.zombies.length < 6 && state.spawnTimer <= 0) {
+    if (state.zombies.length < stage.zombies && state.spawnTimer <= 0) {
       spawnZombie();
       state.spawnTimer = 0.8 + Math.random() * 0.45;
     }
-    if (state.aliens.length < 2 && state.alienSpawnTimer <= 0) {
+    if (state.aliens.length < stage.aliens && state.alienSpawnTimer <= 0) {
       spawnAlienDrone();
       state.alienSpawnTimer = 2 + Math.random() * 1.1;
     }
-  } else if (state.stageIndex === 3) {
-    if (state.zombies.length === 0 || state.aliens.length === 0) {
+  } else if (stage.objective === "destroy") {
+    if (state.zombies.length === 0 || (stage.aliens > 0 && state.aliens.length === 0)) {
       seedStageEnemies();
     }
-    if (state.zombies.length < 7 && state.spawnTimer <= 0) {
+    if (state.zombies.length < stage.zombies && state.spawnTimer <= 0) {
       spawnZombie();
       state.spawnTimer = 0.7 + Math.random() * 0.45;
     }
-    if (state.aliens.length < 3 && state.alienSpawnTimer <= 0) {
+    if (state.aliens.length < stage.aliens && state.alienSpawnTimer <= 0) {
       spawnAlienDrone();
       state.alienSpawnTimer = 1.8 + Math.random() * 1;
     }
-  } else if (state.stageIndex === 4) {
-    if (state.zombies.length === 0 || state.aliens.length === 0) {
+  } else if (stage.objective === "boss") {
+    if (state.zombies.length === 0 || (stage.aliens > 0 && state.aliens.length === 0)) {
       seedStageEnemies();
     }
-    if (state.zombies.length < 5 && state.spawnTimer <= 0) {
+    if (state.zombies.length < stage.zombies && state.spawnTimer <= 0) {
       spawnZombie();
       state.spawnTimer = 0.85 + Math.random() * 0.55;
     }
-    if (state.aliens.length < 3 && state.alienSpawnTimer <= 0) {
+    if (state.aliens.length < stage.aliens && state.alienSpawnTimer <= 0) {
       spawnAlienDrone();
       state.alienSpawnTimer = 2 + Math.random() * 1.2;
     }
@@ -1342,8 +1509,102 @@ function drawAtmosphere() {
   }
 }
 
+function drawVenueSign(x, y, width, text) {
+  ctx.fillStyle = "#6b4d43";
+  ctx.fillRect(x, y, width, 26);
+  ctx.fillStyle = "#ead8ad";
+  ctx.fillRect(x + 8, y + 6, width - 16, 12);
+  ctx.direction = "rtl";
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#47342f";
+  ctx.font = '12px "Rubik"';
+  ctx.fillText(text, x + width / 2, y + 18);
+  ctx.direction = "ltr";
+  ctx.textAlign = "start";
+}
+
+function drawActivationNodes() {
+  for (const generator of state.generators) {
+    ctx.fillStyle = generator.active ? "#e8c579" : "#6f655d";
+    ctx.fillRect(generator.x, generator.y, generator.width, generator.height);
+    ctx.fillStyle = generator.active ? "#fff2b2" : "#302a29";
+    ctx.fillRect(generator.x + 8, generator.y + 8, 16, 12);
+    ctx.fillStyle = generator.active ? "rgba(255, 241, 199, 0.18)" : "rgba(0, 0, 0, 0)";
+    ctx.fillRect(generator.x - 10, generator.y - 16, 52, 20);
+  }
+}
+
+function drawBeaconNodes() {
+  for (const beacon of state.beacons) {
+    ctx.fillStyle = beacon.active ? "#ffd38d" : "#57484a";
+    ctx.fillRect(beacon.x, beacon.y, beacon.width, beacon.height);
+    ctx.fillStyle = beacon.active ? "#fff1c7" : "#231d20";
+    ctx.fillRect(beacon.x + 9, beacon.y + 6, 10, 12);
+    ctx.fillStyle = beacon.active ? "rgba(255, 211, 141, 0.18)" : "rgba(0, 0, 0, 0)";
+    ctx.fillRect(beacon.x - 10, beacon.y - 24, 48, 28);
+  }
+}
+
+function drawNestNodes() {
+  for (const nest of state.nests) {
+    ctx.fillStyle = "#5a2d2c";
+    ctx.fillRect(nest.x, nest.y, nest.width, nest.height);
+    ctx.fillStyle = "#b46e58";
+    ctx.fillRect(nest.x + 8, nest.y + 6, nest.width - 16, nest.height - 12);
+    ctx.fillStyle = "#f0caa0";
+    const ratio = nest.hp / nest.maxHp;
+    ctx.fillRect(nest.x + 4, nest.y - 8, (nest.width - 8) * ratio, 4);
+  }
+}
+
 function drawStageScenery() {
-  if (state.stageIndex === 0) {
+  const stage = currentStageDef();
+
+  if (stage.objective === "beaconContact" && state.survivor?.inBunker) {
+    ctx.fillStyle = "#4d443f";
+    ctx.fillRect(48, 118, 864, 242);
+    ctx.fillStyle = "#7a6a5e";
+    ctx.fillRect(72, 142, 816, 198);
+    drawVenueSign(344, 148, 250, "חדר קשר בתיכון");
+    ctx.fillStyle = "#65574d";
+    ctx.fillRect(98, 180, 220, 18);
+    ctx.fillRect(612, 180, 210, 18);
+    ctx.fillRect(92, 246, 184, 18);
+    ctx.fillRect(668, 246, 154, 18);
+    ctx.fillStyle = "#917b69";
+    ctx.fillRect(112, 200, 34, 56);
+    ctx.fillRect(154, 200, 34, 56);
+    ctx.fillRect(196, 200, 34, 56);
+    ctx.fillRect(632, 200, 42, 48);
+    ctx.fillRect(682, 200, 42, 48);
+    ctx.fillRect(734, 200, 42, 48);
+    ctx.fillStyle = "#38443d";
+    ctx.fillRect(430, 180, 58, 28);
+    ctx.fillStyle = "#89a36f";
+    ctx.fillRect(438, 188, 42, 12);
+    drawDetailedHuman(
+      state.survivor.x,
+      state.survivor.y,
+      {
+        skin: "#dcb08a",
+        skinShadow: "#b18262",
+        neck: "#a77759",
+        hair: "#312119",
+        shirt: "#8e7d72",
+        shirtShadow: "#5d5149",
+        collar: "#ddd3c6",
+        coat: "#7e6f68",
+        coatShadow: "#5c504a",
+        pants: "#6f6f88",
+        pantsShadow: "#4a4a5e",
+        boots: "#3e2f27",
+        arm: "#dcb08a",
+        hand: "#dcb08a",
+      },
+      false,
+      false,
+    );
+  } else if (stage.scenery === "kedemYard") {
     ctx.fillStyle = "#8d6953";
     ctx.fillRect(72, 144, 280, 160);
     ctx.fillStyle = "#d9c29e";
@@ -1351,246 +1612,145 @@ function drawStageScenery() {
     ctx.fillStyle = "#9fb6c5";
     ctx.fillRect(112, 184, 74, 44);
     ctx.fillRect(206, 184, 74, 44);
-    ctx.fillStyle = "rgba(255, 245, 220, 0.16)";
-    ctx.fillRect(112, 184, 74, 12);
-    ctx.fillRect(206, 184, 74, 12);
-    ctx.fillStyle = "#dba070";
-    ctx.fillRect(0, GROUND_Y - 10, WIDTH, 18);
-    ctx.fillStyle = "rgba(255, 231, 192, 0.18)";
-    ctx.fillRect(54, 246, 340, 12);
-    ctx.fillStyle = "rgba(255, 225, 170, 0.12)";
-    ctx.fillRect(0, GROUND_Y - 40, WIDTH, 28);
-    ctx.fillStyle = "#74524a";
-    ctx.fillRect(132, 124, 162, 26);
-    ctx.fillStyle = "#e9d9b0";
-    ctx.fillRect(144, 132, 138, 10);
-    ctx.fillStyle = "#876352";
-    ctx.fillRect(402, 228, 96, 18);
-    ctx.fillRect(486, 236, 54, 10);
+    drawVenueSign(132, 124, 162, "בית ספר קדם");
     drawCamel(552, GROUND_Y - 42, 0.88, 0.5);
-
-    if (state.exitGate) {
-      ctx.fillStyle = state.exitGate.active ? "#e3d38d" : "#726658";
-      ctx.fillRect(state.exitGate.x, state.exitGate.y, state.exitGate.width, state.exitGate.height);
-      ctx.fillStyle = "#3a2e2f";
-      ctx.fillRect(state.exitGate.x + 8, state.exitGate.y + 10, 8, state.exitGate.height - 20);
-      ctx.fillRect(state.exitGate.x + 24, state.exitGate.y + 10, 8, state.exitGate.height - 20);
-    }
-  } else if (state.stageIndex === 1) {
-    ctx.fillStyle = "#4b423e";
-    ctx.fillRect(40, 118, 880, 250);
-    ctx.fillStyle = "#78685d";
-    ctx.fillRect(62, 138, 836, 210);
-    ctx.fillStyle = "#5d5048";
-    ctx.fillRect(470, 130, 46, 210);
-    ctx.fillStyle = "rgba(244, 202, 148, 0.12)";
-    ctx.fillRect(62, 138, 836, 48);
-    ctx.fillStyle = "rgba(255, 224, 173, 0.08)";
-    ctx.fillRect(80, 180, 800, 18);
-
-    for (const generator of state.generators) {
-      ctx.fillStyle = generator.active ? "#e8c579" : "#6f655d";
-      ctx.fillRect(generator.x, generator.y, generator.width, generator.height);
-      ctx.fillStyle = generator.active ? "#fff2b2" : "#302a29";
-      ctx.fillRect(generator.x + 8, generator.y + 8, 16, 12);
-    }
-  } else if (state.stageIndex === 2) {
-    if (state.survivor?.inBunker) {
-      ctx.fillStyle = "#4d443f";
-      ctx.fillRect(48, 118, 864, 242);
-      ctx.fillStyle = "#7a6a5e";
-      ctx.fillRect(72, 142, 816, 198);
-      ctx.fillStyle = "#65574d";
-      ctx.fillRect(92, 166, 220, 18);
-      ctx.fillRect(612, 166, 210, 18);
-      ctx.fillRect(92, 246, 184, 18);
-      ctx.fillRect(668, 246, 154, 18);
-      ctx.fillStyle = "#917b69";
-      ctx.fillRect(112, 186, 34, 56);
-      ctx.fillRect(154, 186, 34, 56);
-      ctx.fillRect(196, 186, 34, 56);
-      ctx.fillRect(632, 186, 42, 48);
-      ctx.fillRect(682, 186, 42, 48);
-      ctx.fillRect(734, 186, 42, 48);
-      ctx.fillStyle = "#857263";
-      ctx.fillRect(396, 208, 128, 76);
-      ctx.fillStyle = "#d4c39f";
-      ctx.fillRect(410, 222, 64, 10);
-      ctx.fillStyle = "#4e6454";
-      ctx.fillRect(136, 286, 126, 20);
-      ctx.fillRect(604, 286, 138, 20);
-      ctx.fillStyle = "#c4b084";
-      ctx.fillRect(146, 292, 106, 8);
-      ctx.fillRect(614, 292, 118, 8);
-      ctx.fillStyle = "#5c4c43";
-      ctx.fillRect(344, 162, 28, 126);
-      ctx.fillRect(548, 162, 28, 126);
-      ctx.fillStyle = "#99836f";
-      ctx.fillRect(620, 170, 54, 110);
-      ctx.fillStyle = "#f0c27b";
-      ctx.fillRect(646, 200, 8, 8);
-      ctx.fillStyle = "rgba(255, 228, 176, 0.12)";
-      ctx.fillRect(72, 142, 816, 32);
+  } else if (stage.scenery === "football" || stage.scenery === "sportsField") {
+    ctx.fillStyle = "#4f6845";
+    ctx.fillRect(0, 150, WIDTH, 196);
+    ctx.fillStyle = "#dcd6ba";
+    ctx.fillRect(48, 182, 840, 6);
+    ctx.fillRect(460, 150, 6, 196);
+    ctx.fillRect(120, 270, 160, 6);
+    ctx.fillRect(650, 270, 160, 6);
+    ctx.fillStyle = "#c8b692";
+    ctx.fillRect(86, 210, 32, 96);
+    ctx.fillRect(822, 210, 32, 96);
+    drawVenueSign(360, 120, 220, stage.name);
+  } else if (stage.scenery === "kindergarten") {
+    ctx.fillStyle = "#c79a6e";
+    ctx.fillRect(72, 170, 230, 110);
+    ctx.fillStyle = "#df6b5f";
+    ctx.fillRect(102, 154, 170, 24);
+    ctx.fillStyle = "#f0c36e";
+    ctx.fillRect(560, 220, 120, 16);
+    ctx.fillRect(590, 192, 60, 28);
+    ctx.fillStyle = "#6da1c2";
+    ctx.fillRect(720, 192, 18, 98);
+    ctx.fillRect(780, 192, 18, 98);
+    ctx.fillRect(720, 192, 78, 14);
+    drawVenueSign(118, 136, 138, "הגן");
+  } else if (stage.scenery === "agClass" || stage.scenery === "dvClass") {
+    ctx.fillStyle = "#7c675c";
+    ctx.fillRect(60, 138, 828, 210);
+    ctx.fillStyle = "#d0bf9c";
+    ctx.fillRect(84, 160, 780, 168);
+    ctx.fillStyle = "#8d715e";
+    ctx.fillRect(118, 236, 130, 24);
+    ctx.fillRect(298, 236, 130, 24);
+    ctx.fillRect(478, 236, 130, 24);
+    ctx.fillRect(658, 236, 130, 24);
+    ctx.fillStyle = "#5d7f91";
+    ctx.fillRect(692, 176, 110, 36);
+    drawVenueSign(118, 128, 180, stage.name);
+  } else if (stage.scenery === "highSchool") {
+    ctx.fillStyle = "#6c5756";
+    ctx.fillRect(38, 132, 886, 226);
+    ctx.fillStyle = "#8f746a";
+    ctx.fillRect(70, 156, 828, 176);
+    ctx.fillStyle = "#b8a38d";
+    ctx.fillRect(106, 182, 112, 116);
+    ctx.fillRect(744, 182, 112, 116);
+    drawVenueSign(360, 126, 220, "התיכון");
+  } else if (stage.scenery === "courtyard") {
+    ctx.fillStyle = "#8a705a";
+    ctx.fillRect(80, 166, 160, 112);
+    ctx.fillRect(714, 166, 160, 112);
+    ctx.fillStyle = "#9d885e";
+    ctx.fillRect(280, 230, 360, 16);
+    ctx.fillRect(296, 188, 16, 58);
+    ctx.fillRect(608, 188, 16, 58);
+    drawVenueSign(352, 140, 156, "החצר");
+    drawJackal(820, GROUND_Y - 26, 1.05, 0.42);
+  } else if (stage.scenery === "matnas" || stage.scenery === "robotics") {
+    ctx.fillStyle = "#66554d";
+    ctx.fillRect(56, 126, 852, 234);
+    ctx.fillStyle = "#8b776d";
+    ctx.fillRect(84, 152, 796, 182);
+    ctx.fillStyle = "#4e5b63";
+    ctx.fillRect(144, 190, 120, 80);
+    ctx.fillRect(694, 190, 120, 80);
+    ctx.fillStyle = "#9f8b7a";
+    ctx.fillRect(378, 208, 164, 72);
+    drawVenueSign(332, 132, 256, stage.name);
+  } else if (stage.scenery === "pis") {
+    ctx.fillStyle = "#5b4d58";
+    ctx.fillRect(54, 132, 860, 228);
+    ctx.fillStyle = "#827185";
+    ctx.fillRect(78, 154, 812, 182);
+    for (let i = 0; i < 4; i += 1) {
       ctx.fillStyle = "#38443d";
-      ctx.fillRect(430, 168, 58, 28);
+      ctx.fillRect(146 + i * 170, 206, 90, 50);
       ctx.fillStyle = "#89a36f";
-      ctx.fillRect(438, 176, 42, 12);
-      ctx.fillStyle = "#a54e4e";
-      ctx.fillRect(786, 282, 18, 12);
-      ctx.fillRect(808, 282, 18, 12);
-      ctx.fillStyle = "#d8ccb7";
-      ctx.fillRect(792, 176, 24, 32);
-      drawDetailedHuman(
-        state.survivor.x,
-        state.survivor.y,
-        {
-          skin: "#dcb08a",
-          skinShadow: "#b18262",
-          neck: "#a77759",
-          hair: "#312119",
-          shirt: "#8e7d72",
-          shirtShadow: "#5d5149",
-          collar: "#ddd3c6",
-          coat: "#7e6f68",
-          coatShadow: "#5c504a",
-          pants: "#6f6f88",
-          pantsShadow: "#4a4a5e",
-          boots: "#3e2f27",
-          arm: "#dcb08a",
-          hand: "#dcb08a",
-        },
-        false,
-        false,
-      );
-      drawDetailedHuman(
-        214,
-        GROUND_Y - 54,
-        {
-          skin: "#efc399",
-          skinShadow: "#c89672",
-          neck: "#b78360",
-          hair: "#8f5e3e",
-          shirt: "#6f8397",
-          shirtShadow: "#556675",
-          collar: "#d8d0bf",
-          coat: "#8f786d",
-          coatShadow: "#6c5b53",
-          pants: "#6c6f86",
-          pantsShadow: "#505467",
-          boots: "#6a4c37",
-          arm: "#e7bb90",
-          hand: "#efc399",
-          cheek: "rgba(188, 120, 94, 0.45)",
-        },
-        false,
-        false,
-      );
-    } else {
-      ctx.fillStyle = "#69545b";
-      ctx.fillRect(0, 120, WIDTH, 240);
-      ctx.fillStyle = "#91746d";
-      ctx.fillRect(62, 154, 210, 120);
-      ctx.fillRect(336, 188, 180, 96);
-      ctx.fillRect(560, 130, 236, 154);
-      ctx.fillStyle = "rgba(168, 196, 214, 0.28)";
-      ctx.fillRect(726, 202, 136, 10);
-      ctx.fillStyle = "#624951";
-      ctx.beginPath();
-      ctx.moveTo(780, 212);
-      ctx.lineTo(812, 166);
-      ctx.lineTo(846, 212);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillRect(806, 208, 22, 6);
-      ctx.beginPath();
-      ctx.moveTo(582, 154);
-      ctx.lineTo(632, 92);
-      ctx.lineTo(674, 116);
-      ctx.lineTo(716, 154);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = "#c59a7d";
-      ctx.fillRect(0, GROUND_Y - 10, WIDTH, 18);
-      ctx.fillStyle = "rgba(255, 221, 183, 0.1)";
-      ctx.fillRect(0, GROUND_Y - 52, WIDTH, 30);
-
-      for (const beacon of state.beacons) {
-        ctx.fillStyle = beacon.active ? "#ffd38d" : "#57484a";
-        ctx.fillRect(beacon.x, beacon.y, beacon.width, beacon.height);
-        ctx.fillStyle = beacon.active ? "#fff1c7" : "#231d20";
-        ctx.fillRect(beacon.x + 9, beacon.y + 6, 10, 12);
-        ctx.fillStyle = beacon.active ? "rgba(255, 211, 141, 0.18)" : "rgba(0, 0, 0, 0)";
-        ctx.fillRect(beacon.x - 10, beacon.y - 24, 48, 28);
-      }
+      ctx.fillRect(154 + i * 170, 214, 74, 34);
     }
-  } else if (state.stageIndex === 3) {
-    ctx.fillStyle = "#5e4744";
-    ctx.fillRect(0, 136, WIDTH, 222);
-    ctx.fillStyle = "#9b7a67";
-    ctx.fillRect(0, GROUND_Y - 12, WIDTH, 20);
+    drawVenueSign(360, 128, 220, "תפוח פיס");
+  } else if (stage.scenery === "mall" || stage.scenery === "zim") {
     ctx.fillStyle = "#6b5853";
-    ctx.fillRect(124, 176, 120, 120);
-    ctx.fillRect(690, 160, 170, 136);
-    ctx.fillStyle = "rgba(255, 210, 170, 0.08)";
-    ctx.fillRect(0, GROUND_Y - 46, WIDTH, 24);
-    ctx.fillStyle = "#6a4a43";
-    ctx.beginPath();
-    ctx.moveTo(0, GROUND_Y - 4);
-    ctx.lineTo(80, GROUND_Y - 66);
-    ctx.lineTo(152, GROUND_Y - 28);
-    ctx.lineTo(232, GROUND_Y - 84);
-    ctx.lineTo(320, GROUND_Y - 44);
-    ctx.lineTo(412, GROUND_Y - 102);
-    ctx.lineTo(516, GROUND_Y - 40);
-    ctx.lineTo(612, GROUND_Y - 88);
-    ctx.lineTo(704, GROUND_Y - 36);
-    ctx.lineTo(806, GROUND_Y - 76);
-    ctx.lineTo(900, GROUND_Y - 22);
-    ctx.lineTo(WIDTH, GROUND_Y - 2);
-    ctx.lineTo(WIDTH, GROUND_Y + 22);
-    ctx.lineTo(0, GROUND_Y + 22);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "rgba(164, 198, 214, 0.24)";
-    ctx.fillRect(736, GROUND_Y - 86, 114, 8);
-    drawJackal(118, GROUND_Y - 28, 1.2, 0.56);
-    drawJackal(808, GROUND_Y - 26, 1.06, 0.48);
-
-    for (const nest of state.nests) {
-      ctx.fillStyle = "#5a2d2c";
-      ctx.fillRect(nest.x, nest.y, nest.width, nest.height);
-      ctx.fillStyle = "#b46e58";
-      ctx.fillRect(nest.x + 8, nest.y + 6, nest.width - 16, nest.height - 12);
-      ctx.fillStyle = "#f0caa0";
-      const ratio = nest.hp / nest.maxHp;
-      ctx.fillRect(nest.x + 4, nest.y - 8, (nest.width - 8) * ratio, 4);
+    ctx.fillRect(30, 140, 900, 220);
+    ctx.fillStyle = "#9d8374";
+    ctx.fillRect(54, 164, 852, 176);
+    for (let i = 0; i < 4; i += 1) {
+      ctx.fillStyle = "#c3ab92";
+      ctx.fillRect(76 + i * 210, 188, 160, 96);
+      ctx.fillStyle = "#7f6659";
+      ctx.fillRect(96 + i * 210, 176, 120, 18);
     }
-  } else if (state.stageIndex === 4) {
-    ctx.fillStyle = "#593b37";
-    ctx.fillRect(520, 90, 360, 170);
+    drawVenueSign(332, 132, 256, stage.name);
+  } else if (stage.scenery === "library") {
+    ctx.fillStyle = "#65544b";
+    ctx.fillRect(52, 132, 864, 228);
+    ctx.fillStyle = "#857066";
+    ctx.fillRect(78, 158, 812, 176);
+    for (let i = 0; i < 5; i += 1) {
+      ctx.fillStyle = "#6f5949";
+      ctx.fillRect(108 + i * 150, 184, 90, 114);
+      ctx.fillStyle = "#c8b79a";
+      ctx.fillRect(116 + i * 150, 194, 74, 10);
+      ctx.fillRect(116 + i * 150, 214, 74, 10);
+      ctx.fillRect(116 + i * 150, 234, 74, 10);
+    }
+    drawVenueSign(366, 130, 188, "הספריה");
+  } else if (stage.scenery === "supermarket") {
+    ctx.fillStyle = "#5a4f4d";
+    ctx.fillRect(46, 136, 874, 224);
+    ctx.fillStyle = "#87776e";
+    ctx.fillRect(74, 160, 818, 176);
+    for (let i = 0; i < 4; i += 1) {
+      ctx.fillStyle = "#b8b0a3";
+      ctx.fillRect(140 + i * 150, 188, 42, 118);
+      ctx.fillRect(182 + i * 150, 188, 42, 118);
+    }
+    drawVenueSign(364, 128, 194, "שופרסל");
+  } else if (stage.scenery === "pub") {
+    ctx.fillStyle = "#4d3d3d";
+    ctx.fillRect(92, 154, 780, 178);
+    ctx.fillStyle = "#725851";
+    ctx.fillRect(120, 180, 724, 128);
+    ctx.fillStyle = "#8c6a57";
+    ctx.fillRect(206, 240, 460, 20);
+    ctx.fillStyle = "#463838";
+    ctx.fillRect(676, 200, 92, 86);
+    drawVenueSign(360, 138, 220, "פאב המוזה");
+  } else if (stage.scenery === "pizza") {
+    ctx.fillStyle = "#6a4940";
+    ctx.fillRect(120, 146, 710, 190);
+    ctx.fillStyle = "#9b6a54";
+    ctx.fillRect(150, 174, 650, 140);
     ctx.fillStyle = "#7d5248";
     ctx.beginPath();
-    ctx.arc(760, 200, 170, Math.PI, Math.PI * 2);
+    ctx.arc(760, 220, 96, Math.PI, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "#6a483f";
-    ctx.beginPath();
-    ctx.moveTo(0, GROUND_Y + 8);
-    ctx.lineTo(124, GROUND_Y - 36);
-    ctx.lineTo(252, GROUND_Y - 18);
-    ctx.lineTo(392, GROUND_Y - 72);
-    ctx.lineTo(508, GROUND_Y - 22);
-    ctx.lineTo(620, GROUND_Y - 92);
-    ctx.lineTo(760, GROUND_Y - 30);
-    ctx.lineTo(920, GROUND_Y - 66);
-    ctx.lineTo(WIDTH, GROUND_Y - 10);
-    ctx.lineTo(WIDTH, HEIGHT);
-    ctx.lineTo(0, HEIGHT);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "rgba(255, 211, 179, 0.08)";
-    ctx.fillRect(520, 104, 360, 20);
-    drawCamel(170, GROUND_Y - 46, 1.08, 0.34);
-    drawJackal(304, GROUND_Y - 22, 1.12, 0.3);
+    drawVenueSign(320, 136, 280, "פיצה כפרוצ׳קה");
     if (state.core && state.core.hp > 0) {
       ctx.fillStyle = "#8d4a52";
       ctx.fillRect(state.core.x, state.core.y, state.core.width, state.core.height);
@@ -1599,6 +1759,23 @@ function drawStageScenery() {
       ctx.fillStyle = "#fff0c0";
       ctx.fillRect(state.core.x + 38, state.core.y + 38, 20, 20);
     }
+  }
+
+  if (stage.objective === "activate") {
+    drawActivationNodes();
+  }
+  if (stage.objective === "destroy") {
+    drawNestNodes();
+  }
+  if (stage.objective === "beaconContact" && !state.survivor?.inBunker) {
+    drawBeaconNodes();
+  }
+  if (state.exitGate) {
+    ctx.fillStyle = state.exitGate.active ? "#e3d38d" : "#726658";
+    ctx.fillRect(state.exitGate.x, state.exitGate.y, state.exitGate.width, state.exitGate.height);
+    ctx.fillStyle = "#3a2e2f";
+    ctx.fillRect(state.exitGate.x + 8, state.exitGate.y + 10, 8, state.exitGate.height - 20);
+    ctx.fillRect(state.exitGate.x + 24, state.exitGate.y + 10, 8, state.exitGate.height - 20);
   }
 
   drawPlatforms();
@@ -1647,7 +1824,7 @@ function drawPlayer() {
 }
 
 function drawAlly() {
-  if (!state.ally?.active || state.stageIndex < 3) {
+  if (!state.ally?.active) {
     return;
   }
 
@@ -1963,7 +2140,7 @@ function drawStageOverlay() {
   ctx.textAlign = "start";
   ctx.direction = "ltr";
 
-  if (state.stageIndex === 4 && state.core && state.core.hp > 0) {
+  if (state.core && state.core.hp > 0) {
     drawGroundShadow(state.core.x + state.core.width / 2, 72, 0.16);
     const ratio = state.core.hp / state.core.maxHp;
     ctx.fillStyle = "#250a12";
