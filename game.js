@@ -16,6 +16,11 @@ const PLAYER_SPEED = 220;
 const JUMP_FORCE = 650;
 const ZOMBIE_BASE_SPEED = 70;
 const CHEAT_CODE = ["KeyI", "KeyM", "KeyM", "KeyO", "KeyR", "KeyT", "KeyA", "KeyL"];
+const IMMORTAL_QUERY_ENABLED = (() => {
+  const params = new URLSearchParams(window.location.search);
+  const value = params.get("immortal") ?? params.get("cheat");
+  return value === "1" || value === "true" || value === "on";
+})();
 
 const keys = new Set();
 
@@ -318,10 +323,14 @@ function resetGame() {
   state.dialogueText = "";
   state.exitGate = null;
   state.core = null;
-  state.immortal = false;
+  state.immortal = IMMORTAL_QUERY_ENABLED;
   state.cheatBuffer = [];
   setStatus("פתיחה");
-  setHint("לחצו אנטר או לחצו על המסך כדי להתחיל את סצנת הפתיחה.");
+  setHint(
+    state.immortal
+      ? "מצב אלמוות הופעל מהקישור. לחצו אנטר או לחצו על המסך כדי להתחיל."
+      : "לחצו אנטר או לחצו על המסך כדי להתחיל את סצנת הפתיחה.",
+  );
   syncHud();
 }
 
