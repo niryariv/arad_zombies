@@ -6,6 +6,7 @@ const waveEl = document.getElementById("wave");
 const scoreEl = document.getElementById("score");
 const statusEl = document.getElementById("status");
 const hintEl = document.getElementById("hint");
+const missionEl = document.getElementById("mission");
 
 const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
@@ -40,9 +41,38 @@ const introSteps = [
   },
 ];
 
+const stageDefs = [
+  {
+    name: "חצר בית הספר",
+    status: "בריחה",
+    hint: "חסלו 5 זומבים ואז ברחו דרך השער מימין.",
+  },
+  {
+    name: "הבונקר",
+    status: "שחזור חשמל",
+    hint: "געו בשלושת הגנרטורים כדי להדליק את הבונקר.",
+  },
+  {
+    name: "גגות הפרבר",
+    status: "אות מצוקה",
+    hint: "הדליקו שני משדרים, צרו קשר עם שורד, והגיעו לבונקר שלו.",
+  },
+  {
+    name: "רחוב הקריסה",
+    status: "טיהור הקינים",
+    hint: "פוצצו את שלושת קיני הזוהמה לפני שהרחוב קורס.",
+  },
+  {
+    name: "מכתש הפלישה",
+    status: "קרב אחרון",
+    hint: "פוצצו את ליבת החייזרים כדי להפיל את הפלישה.",
+  },
+];
+
 const state = {
   player: null,
   zombies: [],
+  aliens: [],
   shots: [],
   particles: [],
   floatingTexts: [],
@@ -51,17 +81,28 @@ const state = {
   score: 0,
   time: 0,
   gameOver: false,
+  victory: false,
   mode: "intro",
   introTime: 0,
   introStep: 0,
+  stageIndex: -1,
+  stageKills: 0,
   spawnTimer: 0,
+  alienSpawnTimer: 0,
   invulnerableTimer: 0,
-  gesture: {
-    active: false,
-    points: [],
-    progress: 0,
-    cooldown: 0,
-  },
+  shotCooldown: 0,
+  mission: "",
+  transitionTimer: 0,
+  transitionText: "",
+  generators: [],
+  beacons: [],
+  nests: [],
+  survivor: null,
+  ally: null,
+  dialogueTimer: 0,
+  dialogueText: "",
+  exitGate: null,
+  core: null,
 };
 
 const platforms = [
@@ -98,6 +139,7 @@ function createBunkerFriends() {
 function resetGame() {
   state.player = createPlayer();
   state.zombies = [];
+  state.aliens = [];
   state.shots = [];
   state.particles = [];
   state.floatingTexts = [];
@@ -106,24 +148,38 @@ function resetGame() {
   state.score = 0;
   state.time = 0;
   state.gameOver = false;
+  state.victory = false;
   state.mode = "intro";
   state.introTime = 0;
   state.introStep = 0;
-  state.spawnTimer = 1.1;
+  state.stageIndex = -1;
+  state.stageKills = 0;
+  state.spawnTimer = 0;
+  state.alienSpawnTimer = 0;
   state.invulnerableTimer = 0;
-  state.gesture.active = false;
-  state.gesture.points = [];
-  state.gesture.progress = 0;
-  state.gesture.cooldown = 0;
+  state.shotCooldown = 0;
+  state.mission = "התחילו את סצנת הפתיחה";
+  state.transitionTimer = 0;
+  state.transitionText = "";
+  state.generators = [];
+  state.beacons = [];
+  state.nests = [];
+  state.survivor = null;
+  state.ally = null;
+  state.dialogueTimer = 0;
+  state.dialogueText = "";
+  state.exitGate = null;
+  state.core = null;
   setStatus("פתיחה");
-  setHint("לחצו Enter או לחצו על המסך כדי להתחיל את סצנת הפתיחה.");
+  setHint("לחצו אנטר או לחצו על המסך כדי להתחיל את סצנת הפתיחה.");
   syncHud();
 }
 
 function syncHud() {
-  healthEl.textContent = String(state.player.hp);
-  waveEl.textContent = String(state.wave);
+  healthEl.textContent = "לבבות";
+  waveEl.textContent = state.stageIndex >= 0 ? `${state.stageIndex + 1}/5` : "0/5";
   scoreEl.textContent = String(state.score);
+  missionEl.textContent = state.mission;
 }
 
 function setStatus(text) {
@@ -132,6 +188,11 @@ function setStatus(text) {
 
 function setHint(text) {
   hintEl.textContent = text;
+}
+
+function setMission(text) {
+  state.mission = text;
+  missionEl.textContent = text;
 }
 
 function clamp(value, min, max) {
@@ -147,51 +208,288 @@ function rectsOverlap(a, b) {
   );
 }
 
-function spawnZombie() {
-  const side = Math.random() < 0.5 ? -1 : 1;
-  const speed = ZOMBIE_BASE_SPEED + state.wave * 8 + Math.random() * 26;
+function resolvePlatformLanding(entity, previousY) {
+  const previousBottom = previousY + entity.height;
+  const currentBottom = entity.y + entity.height;
+  let landingPlatform = null;
+
+  for (const platform of platforms) {
+    const crossesPlatformTop =
+      entity.x + entity.width > platform.x &&
+      entity.x < platform.x + platform.width &&
+      previousBottom <= platform.y &&
+      currentBottom >= platform.y;
+
+    if (!crossesPlatformTop) {
+      continue;
+    }
+
+    if (!landingPlatform || platform.y < landingPlatform.y) {
+      landingPlatform = platform;
+    }
+  }
+
+  if (!landingPlatform) {
+    return false;
+  }
+
+  entity.y = landingPlatform.y - entity.height;
+  entity.vy = 0;
+  return true;
+}
+
+function configureStage(index) {
+  state.stageIndex = index;
+  state.wave = index + 1;
+  state.stageKills = 0;
+  state.zombies = [];
+  state.aliens = [];
+  state.shots = [];
+  state.particles = [];
+  state.floatingTexts = [];
+  state.spawnTimer = 0.6;
+  state.alienSpawnTimer = 1.4;
+  state.transitionTimer = 0;
+  state.transitionText = "";
+  state.exitGate = null;
+  state.generators = [];
+  state.beacons = [];
+  state.nests = [];
+  const existingAlly = state.ally;
+  state.survivor = null;
+  state.dialogueTimer = 0;
+  state.dialogueText = "";
+  state.core = null;
+  state.shotCooldown = 0;
+  state.invulnerableTimer = 0.4;
+  state.player.vx = 0;
+  state.player.vy = 0;
+  state.player.facing = 1;
+  state.player.hp = clamp(state.player.hp + (index > 0 ? 1 : 0), 1, 3);
+
+  if (index === 0) {
+    state.player.x = 120;
+    state.player.y = 220;
+    state.exitGate = { x: 892, y: GROUND_Y - 96, width: 42, height: 96, active: false };
+    setMission("פרק 1: חסלו 5 זומבים ואז עברו דרך שער המילוט.");
+  } else if (index === 1) {
+    state.player.x = 130;
+    state.player.y = 220;
+    state.generators = [
+      { x: 168, y: 300, width: 32, height: 40, active: false },
+      { x: 390, y: 242, width: 32, height: 40, active: false },
+      { x: 620, y: 208, width: 32, height: 40, active: false },
+    ];
+    setMission("הפעילו 3 גנרטורים בבונקר.");
+  } else if (index === 2) {
+    state.player.x = 120;
+    state.player.y = 220;
+    state.beacons = [
+      { x: 148, y: 248, width: 28, height: 52, active: false },
+      { x: 694, y: 156, width: 28, height: 52, active: false },
+    ];
+    state.survivor = {
+      x: 816,
+      y: 284,
+      width: 26,
+      height: 54,
+      active: false,
+      contacted: false,
+      inBunker: false,
+      recruited: false,
+    };
+    setMission("הדליקו 2 משדרים על הגגות.");
+  } else if (index === 3) {
+    state.player.x = 110;
+    state.player.y = 220;
+    state.nests = [
+      { x: 214, y: 288, width: 44, height: 38, hp: 4, maxHp: 4 },
+      { x: 502, y: 230, width: 44, height: 38, hp: 4, maxHp: 4 },
+      { x: 788, y: 288, width: 44, height: 38, hp: 4, maxHp: 4 },
+    ];
+    setMission("השמידו 3 קיני זוהמה ברחוב.");
+  } else if (index === 4) {
+    state.player.x = 110;
+    state.player.y = 220;
+    state.core = { x: 758, y: 112, width: 96, height: 96, hp: 14, maxHp: 14 };
+    setMission("השמידו את ליבת החייזרים לפני שהנחיל סוגר עליכם.");
+  }
+
+  setStatus(stageDefs[index].status);
+  setHint(stageDefs[index].hint);
+  state.ally = existingAlly?.active
+    ? { ...existingAlly, x: state.player.x + 54, y: state.player.y, shootCooldown: 0 }
+    : null;
+  seedStageEnemies();
+  syncHud();
+}
+
+function beginSurvivalMode() {
+  if (state.mode === "survival") {
+    return;
+  }
+
+  state.mode = "survival";
+  configureStage(0);
+}
+
+function spawnZombie(options = {}) {
+  const side = options.side ?? (Math.random() < 0.5 ? -1 : 1);
+  const stageFactor = 1 + state.stageIndex * 0.15;
+  const speed = ZOMBIE_BASE_SPEED * stageFactor + Math.random() * 24;
+  const x =
+    options.x ??
+    (side < 0 ? -40 : WIDTH + 40);
+  const y = options.y ?? (GROUND_Y - 56);
   state.zombies.push({
-    x: side < 0 ? -40 : WIDTH + 40,
-    y: GROUND_Y - 56,
+    type: "zombie",
+    x,
+    y,
     width: 28,
     height: 56,
     vx: side < 0 ? speed : -speed,
     vy: 0,
     speed,
-    hp: 1 + Math.floor(state.wave / 3),
+    hp: state.stageIndex === 2 ? 2 : 1,
     tint: Math.random() < 0.5 ? "#9df57a" : "#89ffd2",
   });
 }
 
+function spawnAlienDrone() {
+  state.aliens.push({
+    type: "alien",
+    x: 560 + Math.random() * 260,
+    y: 80 + Math.random() * 140,
+    width: 30,
+    height: 20,
+    vx: Math.random() < 0.5 ? -90 : 90,
+    hp: 2,
+    bob: Math.random() * Math.PI * 2,
+  });
+}
+
+function seedStageEnemies() {
+  if (state.stageIndex === 0) {
+    const spawnPoints = [
+      { x: 540, y: GROUND_Y - 56, side: 1 },
+      { x: 620, y: GROUND_Y - 56, side: 1 },
+      { x: 700, y: GROUND_Y - 56, side: 1 },
+      { x: 820, y: GROUND_Y - 56, side: 1 },
+      { x: 610, y: 192, side: 1 },
+    ];
+    while (state.zombies.length < 5) {
+      spawnZombie(spawnPoints[state.zombies.length % spawnPoints.length]);
+    }
+  } else if (state.stageIndex === 1) {
+    const spawnPoints = [
+      { x: 760, y: GROUND_Y - 56, side: 1 },
+      { x: 640, y: 192, side: 1 },
+      { x: 420, y: 226, side: 1 },
+      { x: 220, y: 284, side: -1 },
+    ];
+    while (state.zombies.length < 4) {
+      spawnZombie(spawnPoints[state.zombies.length % spawnPoints.length]);
+    }
+  } else if (state.stageIndex === 2) {
+    const spawnPoints = [
+      { x: 170, y: 284, side: -1 },
+      { x: 420, y: 226, side: 1 },
+      { x: 648, y: 192, side: 1 },
+      { x: 820, y: 284, side: 1 },
+    ];
+    while (state.zombies.length < 4) {
+      spawnZombie(spawnPoints[state.zombies.length % spawnPoints.length]);
+    }
+    while (state.aliens.length < 1) {
+      spawnAlienDrone();
+    }
+  } else if (state.stageIndex === 3) {
+    const spawnPoints = [
+      { x: 180, y: GROUND_Y - 56, side: -1 },
+      { x: 420, y: 226, side: 1 },
+      { x: 640, y: 192, side: 1 },
+      { x: 830, y: GROUND_Y - 56, side: 1 },
+    ];
+    while (state.zombies.length < 5) {
+      spawnZombie(spawnPoints[state.zombies.length % spawnPoints.length]);
+    }
+    while (state.aliens.length < 2) {
+      spawnAlienDrone();
+    }
+  } else if (state.stageIndex === 4) {
+    const spawnPoints = [
+      { x: 690, y: GROUND_Y - 56, side: 1 },
+      { x: 810, y: GROUND_Y - 56, side: 1 },
+      { x: 610, y: 192, side: 1 },
+    ];
+    while (state.zombies.length < 3) {
+      spawnZombie(spawnPoints[state.zombies.length % spawnPoints.length]);
+    }
+    while (state.aliens.length < 2) {
+      spawnAlienDrone();
+    }
+  }
+}
+
 function fireShot() {
-  if (state.gameOver || state.mode !== "survival" || state.gesture.cooldown > 0) {
+  if (
+    state.gameOver ||
+    state.victory ||
+    state.mode !== "survival" ||
+    state.transitionTimer > 0 ||
+    state.shotCooldown > 0
+  ) {
     return;
   }
 
   const { player } = state;
   state.shots.push({
+    source: "player",
     x: player.x + player.width / 2 + player.facing * 18,
     y: player.y + 18,
     vx: player.facing * 520,
+    vy: 0,
     width: 18,
     height: 6,
     ttl: 0.55,
   });
   player.shootFlash = 0.12;
-  state.gesture.cooldown = 0.4;
-  setHint("ירייה בוצעה. שוב גרירה ימינה ואז למעלה.");
+  state.shotCooldown = 0.22;
+  setHint("ירי בוצע. רווח או קליק ימני לירייה הבאה.");
 }
 
-function addExplosion(x, y, color) {
-  for (let i = 0; i < 12; i += 1) {
-    const angle = (Math.PI * 2 * i) / 12;
+function fireAllyShot(targetX, targetY) {
+  if (!state.ally?.active) {
+    return;
+  }
+
+  const dx = targetX - state.ally.x;
+  const dy = targetY - (state.ally.y + 20);
+  const distance = Math.max(1, Math.hypot(dx, dy));
+  state.ally.facing = dx >= 0 ? 1 : -1;
+  state.shots.push({
+    source: "ally",
+    x: state.ally.x + state.ally.width / 2 + state.ally.facing * 16,
+    y: state.ally.y + 18,
+    vx: (dx / distance) * 460,
+    vy: (dy / distance) * 460,
+    width: 16,
+    height: 5,
+    ttl: 0.7,
+  });
+  state.ally.shootCooldown = 0.9;
+}
+
+function addExplosion(x, y, color, amount = 12) {
+  for (let i = 0; i < amount; i += 1) {
+    const angle = (Math.PI * 2 * i) / amount;
     const speed = 70 + Math.random() * 90;
     state.particles.push({
       x,
       y,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed - 30,
-      ttl: 0.45 + Math.random() * 0.15,
+      ttl: 0.45 + Math.random() * 0.2,
       color,
       size: 4 + Math.random() * 3,
     });
@@ -203,7 +501,13 @@ function addFloatingText(x, y, text, color) {
 }
 
 function damagePlayer() {
-  if (state.invulnerableTimer > 0 || state.gameOver || state.mode !== "survival") {
+  if (
+    state.invulnerableTimer > 0 ||
+    state.gameOver ||
+    state.victory ||
+    state.mode !== "survival" ||
+    state.transitionTimer > 0
+  ) {
     return;
   }
 
@@ -215,14 +519,20 @@ function damagePlayer() {
   if (state.player.hp <= 0) {
     state.gameOver = true;
     setStatus("האפלה");
-    setHint("R כדי להתחיל מחדש.");
+    setHint("לחצו ר כדי להתחיל מחדש.");
   } else {
     setStatus("נפגע");
   }
 }
 
 function jumpPlayer() {
-  if (state.player.onGround && !state.gameOver && state.mode === "survival") {
+  if (
+    state.player.onGround &&
+    !state.gameOver &&
+    !state.victory &&
+    state.mode === "survival" &&
+    state.transitionTimer <= 0
+  ) {
     state.player.vy = -JUMP_FORCE;
     state.player.onGround = false;
   }
@@ -235,22 +545,37 @@ function startIntro() {
 
   state.introTime = 0.01;
   setStatus("פלישה");
-  setHint("Enter כדי לדלג ישירות לבונקר.");
+  setHint("לחצו אנטר כדי לדלג ישירות לשלב הראשון.");
+  setMission("צפו בפתיחה או דלגו אל המשחק.");
+  syncHud();
 }
 
-function beginSurvivalMode() {
-  if (state.mode === "survival") {
+function completeStage(text) {
+  if (state.transitionTimer > 0 || state.victory) {
     return;
   }
 
-  state.mode = "survival";
-  state.player.x = 160;
-  state.player.y = 220;
-  state.player.vx = 0;
-  state.player.vy = 0;
-  state.player.facing = 1;
-  setStatus("שורד");
-  setHint('בצעו מחוות "אקדח": גרירה ימינה ואז למעלה.');
+  state.transitionTimer = 2.4;
+  state.transitionText = text;
+  setStatus("משימה הושלמה");
+  setHint("המעבר לשלב הבא מתחיל מיד.");
+}
+
+function triggerVictory() {
+  if (state.victory) {
+    return;
+  }
+
+  state.victory = true;
+  state.transitionTimer = 0;
+  state.transitionText = "";
+  state.zombies = [];
+  state.aliens = [];
+  addExplosion(state.core ? state.core.x + 48 : WIDTH / 2, 180, "#ffb347", 18);
+  setStatus("ניצחון");
+  setMission("הליבה הושמדה. הפלישה קרסה.");
+  setHint("ניצחתם. לחצו ר כדי לשחק שוב.");
+  syncHud();
 }
 
 function updateIntro(dt) {
@@ -282,8 +607,9 @@ function updateIntro(dt) {
 
 function updatePlayer(dt) {
   const { player } = state;
-  const moveLeft = keys.has("ArrowLeft") || keys.has("a") || keys.has("A");
-  const moveRight = keys.has("ArrowRight") || keys.has("d") || keys.has("D");
+  const previousY = player.y;
+  const moveLeft = keys.has("ArrowLeft") || keys.has("KeyA");
+  const moveRight = keys.has("ArrowRight") || keys.has("KeyD");
   const desired = Number(moveRight) - Number(moveLeft);
 
   player.vx = desired * PLAYER_SPEED;
@@ -296,27 +622,11 @@ function updatePlayer(dt) {
   player.y += player.vy * dt;
 
   player.x = clamp(player.x, 0, WIDTH - player.width);
-  player.onGround = false;
-
-  for (const platform of platforms) {
-    const playerFeet = player.y + player.height;
-    const previousFeet = playerFeet - player.vy * dt;
-    const landed =
-      player.x + player.width > platform.x &&
-      player.x < platform.x + platform.width &&
-      previousFeet <= platform.y &&
-      playerFeet >= platform.y;
-
-    if (landed) {
-      player.y = platform.y - player.height;
-      player.vy = 0;
-      player.onGround = true;
-    }
-  }
+  player.onGround = player.vy >= 0 && resolvePlatformLanding(player, previousY);
 
   if (player.y > HEIGHT + 120) {
     damagePlayer();
-    player.x = 160;
+    player.x = 120;
     player.y = 220;
     player.vx = 0;
     player.vy = 0;
@@ -329,25 +639,15 @@ function updateZombies(dt) {
   const { player } = state;
 
   for (const zombie of state.zombies) {
+    const previousY = zombie.y;
     const direction = zombie.x < player.x ? 1 : -1;
     zombie.vx = direction * zombie.speed;
     zombie.vy += GRAVITY * dt;
     zombie.x += zombie.vx * dt;
     zombie.y += zombie.vy * dt;
 
-    for (const platform of platforms) {
-      const feet = zombie.y + zombie.height;
-      const previousFeet = feet - zombie.vy * dt;
-      const landed =
-        zombie.x + zombie.width > platform.x &&
-        zombie.x < platform.x + platform.width &&
-        previousFeet <= platform.y &&
-        feet >= platform.y;
-
-      if (landed) {
-        zombie.y = platform.y - zombie.height;
-        zombie.vy = 0;
-      }
+    if (zombie.vy >= 0) {
+      resolvePlatformLanding(zombie, previousY);
     }
 
     if (rectsOverlap(player, zombie)) {
@@ -358,35 +658,153 @@ function updateZombies(dt) {
   state.zombies = state.zombies.filter((zombie) => zombie.x > -120 && zombie.x < WIDTH + 120);
 }
 
+function updateAliens(dt) {
+  for (const alien of state.aliens) {
+    alien.x += alien.vx * dt;
+    alien.bob += dt * 3;
+    alien.y += Math.sin(alien.bob) * 24 * dt;
+
+    if (alien.x < 520 || alien.x > WIDTH - 60) {
+      alien.vx *= -1;
+    }
+
+    if (rectsOverlap(state.player, alien)) {
+      damagePlayer();
+    }
+  }
+}
+
+function updateAlly(dt) {
+  if (!state.ally?.active || state.stageIndex < 3) {
+    return;
+  }
+
+  const ally = state.ally;
+  const anchorX = clamp(state.player.x + 54, 40, WIDTH - 80);
+  ally.x += (anchorX - ally.x) * Math.min(1, dt * 4);
+  ally.y = GROUND_Y - ally.height;
+  ally.shootCooldown = Math.max(0, ally.shootCooldown - dt);
+
+  const targets = [...state.zombies, ...state.aliens];
+  if (state.stageIndex === 4 && state.core?.hp > 0) {
+    targets.push({
+      x: state.core.x + state.core.width / 2,
+      y: state.core.y + state.core.height / 2,
+      width: 1,
+      height: 1,
+    });
+  }
+
+  if (targets.length === 0 || ally.shootCooldown > 0) {
+    return;
+  }
+
+  let nearest = targets[0];
+  let nearestDistance = Infinity;
+  for (const target of targets) {
+    const tx = target.x + (target.width ?? 0) / 2;
+    const ty = target.y + (target.height ?? 0) / 2;
+    const distance = Math.hypot(tx - ally.x, ty - ally.y);
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearest = { x: tx, y: ty };
+    }
+  }
+
+  fireAllyShot(nearest.x, nearest.y);
+}
+
 function updateShots(dt) {
   for (const shot of state.shots) {
     shot.x += shot.vx * dt;
+    shot.y += (shot.vy ?? 0) * dt;
     shot.ttl -= dt;
   }
 
   for (const shot of state.shots) {
+    if (shot.ttl <= 0) {
+      continue;
+    }
+
     for (const zombie of state.zombies) {
-      if (shot.ttl <= 0) {
+      if (!rectsOverlap(shot, zombie)) {
         continue;
       }
 
-      if (rectsOverlap(shot, zombie)) {
-        zombie.hp -= 1;
-        shot.ttl = 0;
-        addExplosion(shot.x, shot.y, "#ffb347");
+      zombie.hp -= 1;
+      shot.ttl = 0;
+      addExplosion(shot.x, shot.y, "#ffb347");
 
-        if (zombie.hp <= 0) {
-          zombie.dead = true;
-          state.score += 1;
-          addFloatingText(zombie.x, zombie.y - 8, "+1", "#8fff96");
-          addExplosion(zombie.x + zombie.width / 2, zombie.y + 20, zombie.tint);
-          syncHud();
-          if (state.score > 0 && state.score % 6 === 0) {
-            state.wave += 1;
-            setStatus(`גל ${state.wave}`);
-            syncHud();
-          }
+      if (zombie.hp <= 0) {
+        zombie.dead = true;
+        state.score += 1;
+        state.stageKills += 1;
+        addFloatingText(zombie.x, zombie.y - 8, "+1", "#8fff96");
+        addExplosion(zombie.x + zombie.width / 2, zombie.y + 20, zombie.tint);
+        syncHud();
+      }
+      break;
+    }
+
+    if (shot.ttl <= 0) {
+      continue;
+    }
+
+    for (const alien of state.aliens) {
+      if (!rectsOverlap(shot, alien)) {
+        continue;
+      }
+
+      alien.hp -= 1;
+      shot.ttl = 0;
+      addExplosion(shot.x, shot.y, "#7ffff0", 10);
+
+      if (alien.hp <= 0) {
+        alien.dead = true;
+        state.score += 2;
+        addFloatingText(alien.x, alien.y - 8, "+2", "#7ffff0");
+        addExplosion(alien.x + alien.width / 2, alien.y + alien.height / 2, "#7ffff0", 14);
+        syncHud();
+      }
+      break;
+    }
+
+    if (shot.ttl <= 0) {
+      continue;
+    }
+
+    if (state.stageIndex === 3) {
+      for (const nest of state.nests) {
+        if (nest.hp <= 0 || !rectsOverlap(shot, nest)) {
+          continue;
         }
+
+        nest.hp -= 1;
+        shot.ttl = 0;
+        addExplosion(shot.x, shot.y, "#d98b63", 8);
+        if (nest.hp <= 0) {
+          state.score += 3;
+          addFloatingText(nest.x, nest.y - 8, "+3", "#ffd38d");
+          addExplosion(nest.x + nest.width / 2, nest.y + nest.height / 2, "#ffd38d", 16);
+          syncHud();
+        }
+        break;
+      }
+    }
+
+    if (shot.ttl <= 0 || !state.core || state.core.hp <= 0) {
+      continue;
+    }
+
+    if (rectsOverlap(shot, state.core)) {
+      state.core.hp -= 1;
+      shot.ttl = 0;
+      addExplosion(shot.x, shot.y, "#ff5d73", 8);
+
+      if (state.core.hp <= 0) {
+        triggerVictory();
+      } else {
+        setMission(`השמידו את ליבת החייזרים. נותרו ${state.core.hp} פגיעות.`);
       }
     }
   }
@@ -395,6 +813,8 @@ function updateShots(dt) {
     (shot) => shot.ttl > 0 && shot.x > -40 && shot.x < WIDTH + 40,
   );
   state.zombies = state.zombies.filter((zombie) => !zombie.dead);
+  state.aliens = state.aliens.filter((alien) => !alien.dead);
+  state.nests = state.nests.filter((nest) => nest.hp > 0);
 }
 
 function updateEffects(dt) {
@@ -413,72 +833,180 @@ function updateEffects(dt) {
   state.floatingTexts = state.floatingTexts.filter((text) => text.ttl > 0);
 
   state.invulnerableTimer = Math.max(0, state.invulnerableTimer - dt);
-  state.gesture.cooldown = Math.max(0, state.gesture.cooldown - dt);
+  state.shotCooldown = Math.max(0, state.shotCooldown - dt);
+  state.dialogueTimer = Math.max(0, state.dialogueTimer - dt);
+
+  if (state.dialogueTimer === 0 && state.dialogueText) {
+    state.dialogueText = "";
+  }
+}
+
+function updateStageObjective() {
+  if (state.stageIndex === 0) {
+    if (state.stageKills >= 5) {
+      state.exitGate.active = true;
+      setMission("השער נפתח. הגיעו אליו כדי לעבור לבונקר.");
+      if (rectsOverlap(state.player, state.exitGate)) {
+        completeStage("השער נסגר מאחוריכם. מעבר לבונקר...");
+      }
+    } else {
+      setMission(`פרק 1: חסלו עוד ${5 - state.stageKills} זומבים ואז ברחו לשער.`);
+    }
+  } else if (state.stageIndex === 1) {
+    for (const generator of state.generators) {
+      if (!generator.active && rectsOverlap(state.player, generator)) {
+        generator.active = true;
+        addFloatingText(generator.x - 10, generator.y - 8, "פועל", "#8fff96");
+        addExplosion(generator.x + 16, generator.y + 16, "#8fff96", 8);
+      }
+    }
+
+    const activeCount = state.generators.filter((generator) => generator.active).length;
+    if (activeCount >= state.generators.length) {
+      completeStage("הבונקר נדלק. המסלול האחרון נפתח החוצה...");
+    } else {
+      setMission(`הפעילו ${state.generators.length - activeCount} גנרטורים נוספים.`);
+    }
+  } else if (state.stageIndex === 2) {
+    for (const beacon of state.beacons) {
+      if (!beacon.active && rectsOverlap(state.player, beacon)) {
+        beacon.active = true;
+        addFloatingText(beacon.x - 6, beacon.y - 8, "שידור", "#ffd38d");
+        addExplosion(beacon.x + 14, beacon.y + 16, "#ffd38d", 10);
+      }
+    }
+
+    const activeCount = state.beacons.filter((beacon) => beacon.active).length;
+    if (activeCount >= state.beacons.length) {
+      if (!state.survivor.inBunker) {
+        state.survivor.active = true;
+        state.survivor.inBunker = true;
+        state.zombies = [];
+        state.aliens = [];
+        state.player.x = 220;
+        state.player.y = GROUND_Y - state.player.height;
+        state.survivor.x = 620;
+        state.survivor.y = GROUND_Y - state.survivor.height;
+      }
+
+      setMission("הגעתם לבונקר. דברו עם השורד.");
+      setHint("התקרבו לשורד כדי לשמוע מה באמת קרה.");
+      if (!state.survivor.contacted && rectsOverlap(state.player, state.survivor)) {
+        state.survivor.contacted = true;
+        state.survivor.recruited = true;
+        state.ally = {
+          active: true,
+          x: 560,
+          y: GROUND_Y - state.player.height,
+          width: 26,
+          height: 54,
+          facing: -1,
+          shootCooldown: 0.4,
+        };
+        state.dialogueTimer = 6.4;
+        state.dialogueText =
+          "השורד: הקרן מהשמיים הייתה משדר של שליטה. הליבה במכתש מפעילה גם את הזומבים וגם את החייזרים. אני בא איתך.";
+        setStatus("שיחה");
+        setHint("אחרי השיחה הוא יצטרף אליכם לקרב.");
+        completeStage("השורד הצטרף. עכשיו אתם יוצאים יחד לטהר את הרחוב...");
+        state.transitionTimer = 6.4;
+      }
+    } else {
+      setMission(`הדליקו ${state.beacons.length - activeCount} משדרים נוספים.`);
+    }
+  } else if (state.stageIndex === 3) {
+    if (state.nests.length === 0) {
+      completeStage("הקינים התפרקו. הדרך למכתש נפתחה...");
+    } else {
+      setMission(`השמידו עוד ${state.nests.length} קיני זוהמה.`);
+    }
+  } else if (state.stageIndex === 4 && state.core && state.core.hp > 0) {
+    setMission(`פוצצו את ליבת החייזרים. נשארו ${state.core.hp} פגיעות.`);
+  }
 }
 
 function updateSpawns(dt) {
-  if (state.gameOver) {
+  if (state.gameOver || state.victory || state.transitionTimer > 0) {
     return;
   }
 
   state.spawnTimer -= dt;
-  if (state.spawnTimer <= 0) {
-    spawnZombie();
-    const min = Math.max(0.55, 1.9 - state.wave * 0.12);
-    const max = Math.max(0.95, 2.8 - state.wave * 0.1);
-    state.spawnTimer = min + Math.random() * (max - min);
+  state.alienSpawnTimer -= dt;
+
+  if (state.stageIndex === 0) {
+    if (state.zombies.length === 0 && state.stageKills < 5) {
+      seedStageEnemies();
+    }
+    if (state.stageKills < 5 && state.zombies.length < 5 && state.spawnTimer <= 0) {
+      spawnZombie();
+      state.spawnTimer = 0.7 + Math.random() * 0.45;
+    }
+  } else if (state.stageIndex === 1) {
+    const activeCount = state.generators.filter((generator) => generator.active).length;
+    if (activeCount < state.generators.length && state.zombies.length === 0) {
+      seedStageEnemies();
+    }
+    if (activeCount < state.generators.length && state.zombies.length < 6 && state.spawnTimer <= 0) {
+      spawnZombie();
+      state.spawnTimer = 0.95 + Math.random() * 0.55;
+    }
+  } else if (state.stageIndex === 2) {
+    if (state.survivor?.inBunker) {
+      state.zombies = [];
+      state.aliens = [];
+      return;
+    }
+    if (state.zombies.length === 0 || state.aliens.length === 0) {
+      seedStageEnemies();
+    }
+    if (state.zombies.length < 6 && state.spawnTimer <= 0) {
+      spawnZombie();
+      state.spawnTimer = 0.8 + Math.random() * 0.45;
+    }
+    if (state.aliens.length < 2 && state.alienSpawnTimer <= 0) {
+      spawnAlienDrone();
+      state.alienSpawnTimer = 2 + Math.random() * 1.1;
+    }
+  } else if (state.stageIndex === 3) {
+    if (state.zombies.length === 0 || state.aliens.length === 0) {
+      seedStageEnemies();
+    }
+    if (state.zombies.length < 7 && state.spawnTimer <= 0) {
+      spawnZombie();
+      state.spawnTimer = 0.7 + Math.random() * 0.45;
+    }
+    if (state.aliens.length < 3 && state.alienSpawnTimer <= 0) {
+      spawnAlienDrone();
+      state.alienSpawnTimer = 1.8 + Math.random() * 1;
+    }
+  } else if (state.stageIndex === 4) {
+    if (state.zombies.length === 0 || state.aliens.length === 0) {
+      seedStageEnemies();
+    }
+    if (state.zombies.length < 5 && state.spawnTimer <= 0) {
+      spawnZombie();
+      state.spawnTimer = 0.85 + Math.random() * 0.55;
+    }
+    if (state.aliens.length < 3 && state.alienSpawnTimer <= 0) {
+      spawnAlienDrone();
+      state.alienSpawnTimer = 2 + Math.random() * 1.2;
+    }
   }
 }
 
-function trackGesturePoint(clientX, clientY) {
-  const rect = canvas.getBoundingClientRect();
-  const x = ((clientX - rect.left) / rect.width) * WIDTH;
-  const y = ((clientY - rect.top) / rect.height) * HEIGHT;
-  const points = state.gesture.points;
-  const last = points[points.length - 1];
-
-  if (!last || Math.hypot(x - last.x, y - last.y) > 14) {
-    points.push({ x, y });
-  }
-
-  const start = points[0];
-  if (!start) {
+function updateTransitions(dt) {
+  if (state.transitionTimer <= 0) {
     return;
   }
 
-  const dx = x - start.x;
-  const dy = y - start.y;
-
-  if (state.gesture.progress === 0 && dx > 60 && Math.abs(dy) < 40) {
-    state.gesture.progress = 1;
-    setHint("מעולה. עכשיו גררו למעלה כדי להשלים את תנועת האקדח.");
-  } else if (state.gesture.progress === 1 && dx > 45 && dy < -55) {
-    fireShot();
-    state.gesture.progress = 2;
-  }
-}
-
-function beginGesture(clientX, clientY) {
-  state.gesture.active = true;
-  state.gesture.points = [];
-  state.gesture.progress = 0;
-  trackGesturePoint(clientX, clientY);
-}
-
-function moveGesture(clientX, clientY) {
-  if (!state.gesture.active) {
+  state.transitionTimer -= dt;
+  if (state.transitionTimer > 0) {
     return;
   }
-  trackGesturePoint(clientX, clientY);
-}
 
-function endGesture() {
-  state.gesture.active = false;
-  state.gesture.points = [];
-  if (state.mode === "survival" && state.gesture.progress < 2) {
-    setHint('המחווה לא הושלמה. נסו שוב: ימינה ואז למעלה.');
+  if (state.stageIndex < stageDefs.length - 1) {
+    configureStage(state.stageIndex + 1);
   }
-  state.gesture.progress = 0;
 }
 
 function drawPixelFigure(x, y, palette, mirrored = false) {
@@ -506,97 +1034,526 @@ function drawPixelFigure(x, y, palette, mirrored = false) {
   ctx.restore();
 }
 
-function drawBackground(time) {
+function drawDetailedHuman(x, y, palette, mirrored = false, shooting = false) {
+  ctx.save();
+  ctx.translate(x, y + 7);
+  ctx.scale(0.9, 0.9);
+  if (mirrored) {
+    ctx.scale(-1, 1);
+    ctx.translate(-26, 0);
+  }
+
+  ctx.fillStyle = palette.coatShadow ?? "#6f5d58";
+  ctx.fillRect(5, 18, 16, 30);
+  ctx.fillStyle = palette.skinShadow;
+  ctx.fillRect(8, 5, 10, 11);
+  ctx.fillStyle = palette.skin;
+  ctx.fillRect(9, 6, 8, 9);
+  ctx.fillStyle = palette.neck ?? palette.skinShadow;
+  ctx.fillRect(11, 15, 4, 3);
+  ctx.fillStyle = palette.hair;
+  ctx.fillRect(7, 2, 12, 5);
+  ctx.fillRect(6, 5, 2, 4);
+  ctx.fillRect(18, 5, 2, 4);
+  ctx.fillStyle = palette.shirtShadow;
+  ctx.fillRect(6, 18, 14, 15);
+  ctx.fillStyle = palette.shirt;
+  ctx.fillRect(8, 19, 10, 12);
+  ctx.fillStyle = palette.collar ?? "#d8d2c3";
+  ctx.fillRect(10, 18, 6, 2);
+  ctx.fillStyle = palette.coat ?? "#8a756c";
+  ctx.fillRect(4, 20, 3, 24);
+  ctx.fillRect(19, 20, 3, 24);
+  ctx.fillRect(7, 31, 12, 12);
+  ctx.fillStyle = palette.arm;
+  ctx.fillRect(3, 19, 3, 11);
+  if (shooting) {
+    ctx.fillRect(18, 19, 7, 3);
+    ctx.fillRect(24, 18, 5, 4);
+    ctx.fillStyle = palette.hand ?? palette.arm;
+    ctx.fillRect(28, 18, 2, 3);
+  } else {
+    ctx.fillRect(20, 19, 3, 11);
+  }
+  ctx.fillStyle = palette.pantsShadow;
+  ctx.fillRect(8, 33, 4, 15);
+  ctx.fillRect(14, 33, 4, 15);
+  ctx.fillStyle = palette.pants;
+  ctx.fillRect(9, 34, 2, 12);
+  ctx.fillRect(15, 34, 2, 12);
+  ctx.fillStyle = palette.boots;
+  ctx.fillRect(7, 48, 5, 4);
+  ctx.fillRect(14, 48, 5, 4);
+  ctx.fillStyle = "#f7efcf";
+  ctx.fillRect(10, 9, 1, 1);
+  ctx.fillRect(15, 9, 1, 1);
+  ctx.fillStyle = palette.cheek ?? "rgba(177, 92, 78, 0.55)";
+  ctx.fillRect(9, 12, 1, 1);
+
+  ctx.restore();
+}
+
+function drawZombieFigure(x, y, palette, mirrored = false) {
+  ctx.save();
+  ctx.translate(x, y + 18);
+  ctx.scale(0.72, 0.72);
+  if (mirrored) {
+    ctx.scale(-1, 1);
+    ctx.translate(-24, 0);
+  }
+
+  ctx.fillStyle = "#201717";
+  ctx.fillRect(4, 2, 18, 48);
+
+  ctx.fillStyle = palette.skin;
+  ctx.fillRect(6, 4, 12, 10);
+  ctx.fillStyle = palette.hair;
+  ctx.fillRect(6, 4, 12, 4);
+  ctx.fillStyle = palette.shirt;
+  ctx.fillRect(4, 16, 16, 13);
+  ctx.fillStyle = palette.pants;
+  ctx.fillRect(5, 29, 6, 13);
+  ctx.fillRect(13, 29, 6, 13);
+  ctx.fillStyle = palette.arm;
+  ctx.fillRect(1, 17, 4, 10);
+  ctx.fillRect(19, 18, 4, 10);
+  ctx.fillStyle = palette.boots;
+  ctx.fillRect(4, 42, 7, 6);
+  ctx.fillRect(13, 42, 7, 6);
+  ctx.fillStyle = "#e6ffb8";
+  ctx.fillRect(8, 8, 2, 2);
+  ctx.fillRect(14, 8, 2, 2);
+
+  ctx.restore();
+}
+
+function drawBaseBackground(time) {
   const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-  sky.addColorStop(0, "#251333");
-  sky.addColorStop(0.55, "#120b20");
-  sky.addColorStop(1, "#06050a");
+  sky.addColorStop(0, "#f3bf84");
+  sky.addColorStop(0.35, "#d68463");
+  sky.addColorStop(0.72, "#7a4d55");
+  sky.addColorStop(1, "#2b2433");
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  ctx.fillStyle = "#472c68";
+  ctx.fillStyle = "rgba(255, 246, 214, 0.08)";
+  ctx.fillRect(0, 0, WIDTH, 140);
+
+  ctx.fillStyle = "rgba(255, 232, 182, 0.34)";
+  ctx.beginPath();
+  ctx.arc(735, 122, 70, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(255, 225, 178, 0.14)";
+  ctx.beginPath();
+  ctx.moveTo(520, 0);
+  ctx.lineTo(840, 0);
+  ctx.lineTo(760, 220);
+  ctx.lineTo(600, 220);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#a86667";
+  for (let i = 0; i < 6; i += 1) {
+    const x = i * 185 - 40;
+    const h = 90 + ((i % 3) * 24);
+    ctx.beginPath();
+    ctx.moveTo(x, GROUND_Y - 20);
+    ctx.lineTo(x + 100, GROUND_Y - h - 40);
+    ctx.lineTo(x + 210, GROUND_Y - 20);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.fillStyle = "#5c4353";
   for (let i = 0; i < 7; i += 1) {
-    const x = i * 170 - 30;
-    const h = 100 + ((i % 3) * 28);
-    ctx.fillRect(x, GROUND_Y - h - 30, 90, h);
-    ctx.fillRect(x + 18, GROUND_Y - h - 80, 20, 50);
+    const x = i * 150 - 30;
+    const h = 120 + ((i % 4) * 24);
+    ctx.fillRect(x, GROUND_Y - h - 12, 70, h);
+    ctx.fillRect(x + 14, GROUND_Y - h - 58, 18, 46);
+    ctx.fillStyle = "rgba(255, 215, 160, 0.12)";
+    ctx.fillRect(x + 10, GROUND_Y - h + 18, 8, 10);
+    ctx.fillRect(x + 28, GROUND_Y - h + 34, 8, 10);
+    ctx.fillStyle = "#5c4353";
   }
 
-  const riftY = 88 + Math.sin(time * 1.2) * 8;
-  ctx.fillStyle = "#7ffff0";
-  ctx.fillRect(650, riftY, 110, 8);
-  ctx.fillRect(690, riftY - 18, 30, 20);
+  ctx.fillStyle = "rgba(255, 212, 167, 0.13)";
+  ctx.beginPath();
+  ctx.moveTo(0, GROUND_Y - 44);
+  ctx.lineTo(WIDTH, GROUND_Y - 112);
+  ctx.lineTo(WIDTH, GROUND_Y - 92);
+  ctx.lineTo(0, GROUND_Y - 22);
+  ctx.closePath();
+  ctx.fill();
 
-  ctx.fillStyle = "#1f7a72";
-  for (let i = 0; i < 42; i += 1) {
-    const x = (i * 61 + (time * 18) % 61) % WIDTH;
-    const y = (i * 37) % 170;
-    ctx.fillRect(x, y, 3, 3);
+  ctx.fillStyle = "#f3d49c";
+  for (let i = 0; i < 26; i += 1) {
+    const x = (i * 83 + (time * 9) % 83) % WIDTH;
+    const y = 44 + ((i * 29) % 120);
+    ctx.fillRect(x, y, 2, 2);
   }
 
-  ctx.fillStyle = "#4d3e2a";
+  ctx.fillStyle = "rgba(255, 210, 170, 0.08)";
+  ctx.fillRect(0, GROUND_Y - 120, WIDTH, 42);
+  ctx.fillStyle = "rgba(255, 236, 214, 0.06)";
+  ctx.fillRect(0, GROUND_Y - 82, WIDTH, 22);
+}
+
+function drawPlatforms() {
+  ctx.fillStyle = "#6f4f3f";
   for (const platform of platforms) {
     ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-    ctx.fillStyle = "#90714a";
+    ctx.fillStyle = "#c28f64";
     ctx.fillRect(platform.x, platform.y, platform.width, 5);
-    ctx.fillStyle = "#4d3e2a";
+    ctx.fillStyle = "#e1b389";
+    ctx.fillRect(platform.x + 8, platform.y + 5, platform.width - 16, 3);
+    ctx.fillStyle = "#50392f";
+    ctx.beginPath();
+    ctx.moveTo(platform.x + platform.width, platform.y);
+    ctx.lineTo(platform.x + platform.width + 14, platform.y + 10);
+    ctx.lineTo(platform.x + platform.width + 14, platform.y + platform.height + 10);
+    ctx.lineTo(platform.x + platform.width, platform.y + platform.height);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "rgba(255, 236, 204, 0.08)";
+    ctx.fillRect(platform.x, platform.y + 5, platform.width, 4);
+    ctx.fillStyle = "#6f4f3f";
   }
+}
+
+function drawGroundShadow(x, width, alpha = 0.2, y = GROUND_Y + 8) {
+  ctx.fillStyle = `rgba(38, 25, 28, ${alpha})`;
+  ctx.beginPath();
+  ctx.ellipse(x, y, width, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawAtmosphere() {
+  ctx.fillStyle = "rgba(255, 232, 208, 0.035)";
+  ctx.fillRect(0, GROUND_Y - 150, WIDTH, 54);
+  ctx.fillStyle = "rgba(255, 242, 226, 0.028)";
+  ctx.fillRect(0, GROUND_Y - 96, WIDTH, 26);
+
+  for (let i = 0; i < 36; i += 1) {
+    const x = (i * 47 + (state.time * 4) % 47) % WIDTH;
+    const y = GROUND_Y - 168 + ((i * 19) % 110);
+    ctx.fillStyle = "rgba(255, 225, 196, 0.06)";
+    ctx.fillRect(x, y, 1, 1);
+  }
+}
+
+function drawStageScenery() {
+  if (state.stageIndex === 0) {
+    ctx.fillStyle = "#8d6953";
+    ctx.fillRect(72, 144, 280, 160);
+    ctx.fillStyle = "#d9c29e";
+    ctx.fillRect(92, 164, 240, 120);
+    ctx.fillStyle = "#9fb6c5";
+    ctx.fillRect(112, 184, 74, 44);
+    ctx.fillRect(206, 184, 74, 44);
+    ctx.fillStyle = "rgba(255, 245, 220, 0.16)";
+    ctx.fillRect(112, 184, 74, 12);
+    ctx.fillRect(206, 184, 74, 12);
+    ctx.fillStyle = "#dba070";
+    ctx.fillRect(0, GROUND_Y - 10, WIDTH, 18);
+    ctx.fillStyle = "rgba(255, 231, 192, 0.18)";
+    ctx.fillRect(54, 246, 340, 12);
+    ctx.fillStyle = "rgba(255, 225, 170, 0.12)";
+    ctx.fillRect(0, GROUND_Y - 40, WIDTH, 28);
+
+    if (state.exitGate) {
+      ctx.fillStyle = state.exitGate.active ? "#e3d38d" : "#726658";
+      ctx.fillRect(state.exitGate.x, state.exitGate.y, state.exitGate.width, state.exitGate.height);
+      ctx.fillStyle = "#3a2e2f";
+      ctx.fillRect(state.exitGate.x + 8, state.exitGate.y + 10, 8, state.exitGate.height - 20);
+      ctx.fillRect(state.exitGate.x + 24, state.exitGate.y + 10, 8, state.exitGate.height - 20);
+    }
+  } else if (state.stageIndex === 1) {
+    ctx.fillStyle = "#4b423e";
+    ctx.fillRect(40, 118, 880, 250);
+    ctx.fillStyle = "#78685d";
+    ctx.fillRect(62, 138, 836, 210);
+    ctx.fillStyle = "#5d5048";
+    ctx.fillRect(470, 130, 46, 210);
+    ctx.fillStyle = "rgba(244, 202, 148, 0.12)";
+    ctx.fillRect(62, 138, 836, 48);
+    ctx.fillStyle = "rgba(255, 224, 173, 0.08)";
+    ctx.fillRect(80, 180, 800, 18);
+
+    for (const generator of state.generators) {
+      ctx.fillStyle = generator.active ? "#e8c579" : "#6f655d";
+      ctx.fillRect(generator.x, generator.y, generator.width, generator.height);
+      ctx.fillStyle = generator.active ? "#fff2b2" : "#302a29";
+      ctx.fillRect(generator.x + 8, generator.y + 8, 16, 12);
+    }
+  } else if (state.stageIndex === 2) {
+    if (state.survivor?.inBunker) {
+      ctx.fillStyle = "#4d443f";
+      ctx.fillRect(48, 118, 864, 242);
+      ctx.fillStyle = "#7a6a5e";
+      ctx.fillRect(72, 142, 816, 198);
+      ctx.fillStyle = "#65574d";
+      ctx.fillRect(92, 166, 220, 18);
+      ctx.fillRect(612, 166, 210, 18);
+      ctx.fillRect(92, 246, 184, 18);
+      ctx.fillRect(668, 246, 154, 18);
+      ctx.fillStyle = "#917b69";
+      ctx.fillRect(112, 186, 34, 56);
+      ctx.fillRect(154, 186, 34, 56);
+      ctx.fillRect(196, 186, 34, 56);
+      ctx.fillRect(632, 186, 42, 48);
+      ctx.fillRect(682, 186, 42, 48);
+      ctx.fillRect(734, 186, 42, 48);
+      ctx.fillStyle = "#857263";
+      ctx.fillRect(396, 208, 128, 76);
+      ctx.fillStyle = "#d4c39f";
+      ctx.fillRect(410, 222, 64, 10);
+      ctx.fillStyle = "#4e6454";
+      ctx.fillRect(136, 286, 126, 20);
+      ctx.fillRect(604, 286, 138, 20);
+      ctx.fillStyle = "#c4b084";
+      ctx.fillRect(146, 292, 106, 8);
+      ctx.fillRect(614, 292, 118, 8);
+      ctx.fillStyle = "#5c4c43";
+      ctx.fillRect(344, 162, 28, 126);
+      ctx.fillRect(548, 162, 28, 126);
+      ctx.fillStyle = "#99836f";
+      ctx.fillRect(620, 170, 54, 110);
+      ctx.fillStyle = "#f0c27b";
+      ctx.fillRect(646, 200, 8, 8);
+      ctx.fillStyle = "rgba(255, 228, 176, 0.12)";
+      ctx.fillRect(72, 142, 816, 32);
+      ctx.fillStyle = "#38443d";
+      ctx.fillRect(430, 168, 58, 28);
+      ctx.fillStyle = "#89a36f";
+      ctx.fillRect(438, 176, 42, 12);
+      ctx.fillStyle = "#a54e4e";
+      ctx.fillRect(786, 282, 18, 12);
+      ctx.fillRect(808, 282, 18, 12);
+      ctx.fillStyle = "#d8ccb7";
+      ctx.fillRect(792, 176, 24, 32);
+      drawDetailedHuman(
+        state.survivor.x,
+        state.survivor.y,
+        {
+          skin: "#dcb08a",
+          skinShadow: "#b18262",
+          neck: "#a77759",
+          hair: "#312119",
+          shirt: "#8e7d72",
+          shirtShadow: "#5d5149",
+          collar: "#ddd3c6",
+          coat: "#7e6f68",
+          coatShadow: "#5c504a",
+          pants: "#6f6f88",
+          pantsShadow: "#4a4a5e",
+          boots: "#3e2f27",
+          arm: "#dcb08a",
+          hand: "#dcb08a",
+        },
+        false,
+        false,
+      );
+      drawDetailedHuman(
+        214,
+        GROUND_Y - 54,
+        {
+          skin: "#efc399",
+          skinShadow: "#c89672",
+          neck: "#b78360",
+          hair: "#8f5e3e",
+          shirt: "#6f8397",
+          shirtShadow: "#556675",
+          collar: "#d8d0bf",
+          coat: "#8f786d",
+          coatShadow: "#6c5b53",
+          pants: "#6c6f86",
+          pantsShadow: "#505467",
+          boots: "#6a4c37",
+          arm: "#e7bb90",
+          hand: "#efc399",
+          cheek: "rgba(188, 120, 94, 0.45)",
+        },
+        false,
+        false,
+      );
+    } else {
+      ctx.fillStyle = "#69545b";
+      ctx.fillRect(0, 120, WIDTH, 240);
+      ctx.fillStyle = "#91746d";
+      ctx.fillRect(62, 154, 210, 120);
+      ctx.fillRect(336, 188, 180, 96);
+      ctx.fillRect(560, 130, 236, 154);
+      ctx.fillStyle = "#c59a7d";
+      ctx.fillRect(0, GROUND_Y - 10, WIDTH, 18);
+      ctx.fillStyle = "rgba(255, 221, 183, 0.1)";
+      ctx.fillRect(0, GROUND_Y - 52, WIDTH, 30);
+
+      for (const beacon of state.beacons) {
+        ctx.fillStyle = beacon.active ? "#ffd38d" : "#57484a";
+        ctx.fillRect(beacon.x, beacon.y, beacon.width, beacon.height);
+        ctx.fillStyle = beacon.active ? "#fff1c7" : "#231d20";
+        ctx.fillRect(beacon.x + 9, beacon.y + 6, 10, 12);
+        ctx.fillStyle = beacon.active ? "rgba(255, 211, 141, 0.18)" : "rgba(0, 0, 0, 0)";
+        ctx.fillRect(beacon.x - 10, beacon.y - 24, 48, 28);
+      }
+    }
+  } else if (state.stageIndex === 3) {
+    ctx.fillStyle = "#5e4744";
+    ctx.fillRect(0, 136, WIDTH, 222);
+    ctx.fillStyle = "#9b7a67";
+    ctx.fillRect(0, GROUND_Y - 12, WIDTH, 20);
+    ctx.fillStyle = "#6b5853";
+    ctx.fillRect(124, 176, 120, 120);
+    ctx.fillRect(690, 160, 170, 136);
+    ctx.fillStyle = "rgba(255, 210, 170, 0.08)";
+    ctx.fillRect(0, GROUND_Y - 46, WIDTH, 24);
+
+    for (const nest of state.nests) {
+      ctx.fillStyle = "#5a2d2c";
+      ctx.fillRect(nest.x, nest.y, nest.width, nest.height);
+      ctx.fillStyle = "#b46e58";
+      ctx.fillRect(nest.x + 8, nest.y + 6, nest.width - 16, nest.height - 12);
+      ctx.fillStyle = "#f0caa0";
+      const ratio = nest.hp / nest.maxHp;
+      ctx.fillRect(nest.x + 4, nest.y - 8, (nest.width - 8) * ratio, 4);
+    }
+  } else if (state.stageIndex === 4) {
+    ctx.fillStyle = "#593b37";
+    ctx.fillRect(520, 90, 360, 170);
+    ctx.fillStyle = "#7d5248";
+    ctx.beginPath();
+    ctx.arc(760, 200, 170, Math.PI, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255, 211, 179, 0.08)";
+    ctx.fillRect(520, 104, 360, 20);
+    if (state.core && state.core.hp > 0) {
+      ctx.fillStyle = "#8d4a52";
+      ctx.fillRect(state.core.x, state.core.y, state.core.width, state.core.height);
+      ctx.fillStyle = "#e08c72";
+      ctx.fillRect(state.core.x + 18, state.core.y + 18, 60, 60);
+      ctx.fillStyle = "#fff0c0";
+      ctx.fillRect(state.core.x + 38, state.core.y + 38, 20, 20);
+    }
+  }
+
+  drawPlatforms();
 }
 
 function drawPlayer() {
   const { player } = state;
   const flash = state.invulnerableTimer > 0 && Math.floor(state.time * 14) % 2 === 0;
+  drawGroundShadow(player.x + player.width / 2, 20, 0.22);
   if (!flash) {
-    drawPixelFigure(
+    drawDetailedHuman(
       player.x,
       player.y,
       {
-        skin: "#f8c988",
-        hair: "#23130b",
-        shirt: "#6cc6ff",
-        pants: "#f1e0a6",
-        boots: "#54351a",
-        arm: player.shootFlash > 0 ? "#ffb347" : "#f8c988",
+        skin: "#efc399",
+        skinShadow: "#c89672",
+        neck: "#b78360",
+        hair: "#8f5e3e",
+        shirt: "#6f8397",
+        shirtShadow: "#556675",
+        collar: "#d8d0bf",
+        coat: "#8f786d",
+        coatShadow: "#6c5b53",
+        pants: "#6c6f86",
+        pantsShadow: "#505467",
+        boots: "#6a4c37",
+        arm: player.shootFlash > 0 ? "#efc399" : "#e7bb90",
+        hand: "#efc399",
+        cheek: "rgba(188, 120, 94, 0.45)",
       },
       player.facing < 0,
+      player.shootFlash > 0,
     );
   }
 
   if (player.shootFlash > 0) {
-    ctx.fillStyle = "#ffef83";
-    ctx.fillRect(
-      player.x + (player.facing > 0 ? 28 : -10),
-      player.y + 20,
-      10,
-      6,
-    );
+    const flashX = player.x + (player.facing > 0 ? 26 : -6);
+    const flashY = player.y + 16;
+    ctx.fillStyle = "#f5d7a2";
+    ctx.fillRect(flashX, flashY + 1, 7, 6);
+    ctx.fillStyle = "#e8b774";
+    ctx.fillRect(flashX + (player.facing > 0 ? 5 : -1), flashY + 2, 8, 3);
+    ctx.fillStyle = "rgba(245, 215, 162, 0.35)";
+    ctx.fillRect(flashX + (player.facing > 0 ? 10 : -6), flashY + 1, 6, 5);
   }
+}
+
+function drawAlly() {
+  if (!state.ally?.active || state.stageIndex < 3) {
+    return;
+  }
+
+  drawGroundShadow(state.ally.x + state.ally.width / 2, 18, 0.18);
+  drawDetailedHuman(
+    state.ally.x,
+    state.ally.y,
+    {
+      skin: "#ddb28d",
+      skinShadow: "#ba8a67",
+      neck: "#a77759",
+      hair: "#4a2f20",
+      shirt: "#6a7c63",
+      shirtShadow: "#4b5946",
+      collar: "#d7cfbf",
+      coat: "#8d7f73",
+      coatShadow: "#63574f",
+      pants: "#70758e",
+      pantsShadow: "#50566d",
+      boots: "#5c4435",
+      arm: "#ddb28d",
+      hand: "#ddb28d",
+      cheek: "rgba(174, 108, 86, 0.4)",
+    },
+    state.ally.facing < 0,
+    false,
+  );
 }
 
 function drawZombies() {
   for (const zombie of state.zombies) {
-    drawPixelFigure(
+    drawGroundShadow(zombie.x + zombie.width / 2, 18, 0.18, zombie.y + zombie.height + 4);
+    drawZombieFigure(
       zombie.x,
       zombie.y,
       {
-        skin: "#899a79",
-        hair: "#2e3c26",
-        shirt: zombie.tint,
-        pants: "#5f3d73",
-        boots: "#352220",
-        arm: "#95a68c",
+        skin: "#bac18f",
+        hair: "#314026",
+        shirt: zombie.tint === "#9df57a" ? "#73cc63" : "#56bca7",
+        pants: "#6c4f63",
+        boots: "#2d2322",
+        arm: "#aab586",
       },
       zombie.vx > 0,
     );
   }
 }
 
+function drawAliens() {
+  for (const alien of state.aliens) {
+    drawGroundShadow(alien.x + alien.width / 2, 16, 0.12);
+    ctx.fillStyle = "#8afff0";
+    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
+    ctx.fillStyle = "#c6fff6";
+    ctx.fillRect(alien.x + 6, alien.y - 4, 18, 6);
+    ctx.fillStyle = "#132328";
+    ctx.fillRect(alien.x + 8, alien.y + 6, 14, 4);
+  }
+}
+
 function drawShots() {
   for (const shot of state.shots) {
-    ctx.fillStyle = "#ffb347";
+    ctx.fillStyle = "#ffe6a8";
     ctx.fillRect(shot.x, shot.y, shot.width, shot.height);
+    ctx.fillStyle = "#ffb347";
+    ctx.fillRect(shot.x - Math.sign(shot.vx) * 8, shot.y + 1, 10, 4);
     ctx.fillStyle = "#fff5cf";
-    ctx.fillRect(shot.x + 3, shot.y + 1, 6, 2);
+    ctx.fillRect(shot.x + 4, shot.y + 1, 7, 2);
+    ctx.fillStyle = "rgba(255, 214, 122, 0.45)";
+    ctx.fillRect(shot.x - Math.sign(shot.vx) * 16, shot.y, 8, 6);
   }
 }
 
@@ -608,7 +1565,7 @@ function drawEffects() {
   }
   ctx.globalAlpha = 1;
 
-  ctx.font = '16px "Press Start 2P"';
+  ctx.font = '18px "Rubik"';
   for (const text of state.floatingTexts) {
     ctx.globalAlpha = clamp(text.ttl / 0.8, 0, 1);
     ctx.fillStyle = text.color;
@@ -617,61 +1574,65 @@ function drawEffects() {
   ctx.globalAlpha = 1;
 }
 
-function drawGestureTrail() {
-  const points = state.gesture.points;
-  if (points.length < 2) {
-    return;
-  }
-
-  ctx.strokeStyle = state.gesture.progress > 0 ? "#8fff96" : "#ffb347";
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(points[0].x, points[0].y);
-  for (let i = 1; i < points.length; i += 1) {
-    ctx.lineTo(points[i].x, points[i].y);
-  }
-  ctx.stroke();
-}
-
 function drawSchoolScene() {
-  ctx.fillStyle = "#705636";
+  ctx.fillStyle = "#8d6953";
   ctx.fillRect(90, 190, 320, 190);
-  ctx.fillStyle = "#d1b98f";
+  ctx.fillStyle = "#d9c29e";
   ctx.fillRect(110, 210, 280, 150);
-  ctx.fillStyle = "#4778a8";
+  ctx.fillStyle = "#9fb6c5";
   ctx.fillRect(128, 230, 88, 52);
   ctx.fillRect(238, 230, 88, 52);
+  ctx.fillStyle = "rgba(255, 231, 192, 0.18)";
+  ctx.fillRect(100, 288, 300, 14);
 
-  drawPixelFigure(170, 300, {
+  drawDetailedHuman(170, 300, {
     skin: "#f8c988",
+    skinShadow: "#d6a676",
+    neck: "#c79367",
     hair: "#23130b",
-    shirt: "#6cc6ff",
-    pants: "#f1e0a6",
+    shirt: "#78a6d9",
+    shirtShadow: "#4a6d91",
+    collar: "#e9dfc9",
+    pants: "#baa36c",
+    pantsShadow: "#7e6b48",
     boots: "#54351a",
     arm: "#f8c988",
+    cheek: "rgba(180, 96, 76, 0.55)",
   });
-  drawPixelFigure(242, 300, {
+  drawDetailedHuman(242, 300, {
     skin: "#efc37f",
+    skinShadow: "#ca9c64",
+    neck: "#b98555",
     hair: "#553015",
-    shirt: "#f88dad",
-    pants: "#87c9ff",
+    shirt: "#bd6f8d",
+    shirtShadow: "#7b465b",
+    collar: "#ead5c8",
+    pants: "#7fa1c2",
+    pantsShadow: "#52697f",
     boots: "#54351a",
     arm: "#efc37f",
+    cheek: "rgba(164, 86, 73, 0.48)",
   });
-  drawPixelFigure(314, 300, {
+  drawDetailedHuman(314, 300, {
     skin: "#d4a269",
+    skinShadow: "#a97d4d",
+    neck: "#96693f",
     hair: "#1f1913",
-    shirt: "#b2ff75",
-    pants: "#d7d0ff",
+    shirt: "#8ea765",
+    shirtShadow: "#5b6942",
+    collar: "#dad6c6",
+    pants: "#a7a2bc",
+    pantsShadow: "#6d687b",
     boots: "#54351a",
     arm: "#d4a269",
+    cheek: "rgba(146, 80, 61, 0.4)",
   });
 }
 
 function drawAlienStrikeScene() {
   drawSchoolScene();
   const beamWidth = 110 + Math.sin(state.time * 22) * 12;
-  ctx.fillStyle = "rgba(127, 255, 240, 0.25)";
+  ctx.fillStyle = "rgba(241, 202, 161, 0.26)";
   ctx.beginPath();
   ctx.moveTo(750, 30);
   ctx.lineTo(750 - beamWidth, 360);
@@ -679,9 +1640,9 @@ function drawAlienStrikeScene() {
   ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = "#a7fff7";
+  ctx.fillStyle = "#f2d5a8";
   ctx.fillRect(710, 24, 80, 18);
-  ctx.fillRect(730, 12, 38, 16);
+  ctx.fillRect(730, 12, 38, 14);
 
   drawPixelFigure(242, 300, {
     skin: "#899a79",
@@ -702,22 +1663,30 @@ function drawAlienStrikeScene() {
 }
 
 function drawBunkerScene() {
-  ctx.fillStyle = "#2f372e";
+  ctx.fillStyle = "#4b423e";
   ctx.fillRect(180, 130, 420, 280);
-  ctx.fillStyle = "#556455";
+  ctx.fillStyle = "#78685d";
   ctx.fillRect(210, 160, 360, 220);
-  ctx.fillStyle = "#83907d";
+  ctx.fillStyle = "#968674";
   ctx.fillRect(470, 180, 54, 120);
-  ctx.fillStyle = "#ffb347";
+  ctx.fillStyle = "#f0c27b";
   ctx.fillRect(495, 210, 8, 8);
+  ctx.fillStyle = "rgba(255, 224, 173, 0.1)";
+  ctx.fillRect(210, 160, 360, 36);
 
-  drawPixelFigure(240, GROUND_Y - 54, {
+  drawDetailedHuman(240, GROUND_Y - 54, {
     skin: "#f8c988",
+    skinShadow: "#d6a676",
+    neck: "#c79367",
     hair: "#23130b",
-    shirt: "#6cc6ff",
-    pants: "#f1e0a6",
+    shirt: "#78a6d9",
+    shirtShadow: "#4a6d91",
+    collar: "#e9dfc9",
+    pants: "#baa36c",
+    pantsShadow: "#7e6b48",
     boots: "#54351a",
     arm: "#f8c988",
+    cheek: "rgba(180, 96, 76, 0.55)",
   });
 
   state.bunkerFriends.forEach((friend, index) => {
@@ -726,20 +1695,22 @@ function drawBunkerScene() {
         ? "#9df57a"
         : "#89ffd2"
       : ["#f88dad", "#b2ff75", "#ffd36c"][index];
-    const skin = friend.infected
-      ? "#899a79"
-      : ["#efc37f", "#d4a269", "#f1c087"][index];
-    const hair = friend.infected
-      ? "#2e3c26"
-      : ["#553015", "#1f1913", "#4d3020"][index];
+    const skin = friend.infected ? "#899a79" : ["#efc37f", "#d4a269", "#f1c087"][index];
+    const hair = friend.infected ? "#2e3c26" : ["#553015", "#1f1913", "#4d3020"][index];
 
-    drawPixelFigure(friend.x, friend.y, {
+    drawDetailedHuman(friend.x, friend.y, {
       skin,
+      skinShadow: friend.infected ? "#71775d" : ["#ca9c64", "#a97d4d", "#bb8b5e"][index],
+      neck: friend.infected ? "#687055" : ["#b98555", "#96693f", "#a9754b"][index],
       hair,
       shirt,
-      pants: friend.infected ? "#5f3d73" : "#d7d0ff",
+      shirtShadow: friend.infected ? "#46705e" : ["#7b465b", "#5b6942", "#8a7040"][index],
+      collar: friend.infected ? "#b9c79c" : "#e4ddce",
+      pants: friend.infected ? "#6e5c72" : "#a7a2bc",
+      pantsShadow: friend.infected ? "#433846" : "#6d687b",
       boots: "#352220",
       arm: skin,
+      cheek: friend.infected ? "rgba(120, 146, 93, 0.35)" : "rgba(162, 87, 70, 0.42)",
     });
 
     if (friend.infected) {
@@ -789,23 +1760,112 @@ function drawIntroScene() {
   ctx.direction = "rtl";
   ctx.textAlign = "right";
   ctx.fillStyle = "#f6edcf";
-  ctx.font = '16px "Press Start 2P"';
+  ctx.font = '18px "Rubik"';
   ctx.fillText(step.title, WIDTH - 70, HEIGHT - 112);
-  ctx.font = '11px "Press Start 2P"';
-  wrapPixelText(step.text, WIDTH - 70, HEIGHT - 84, WIDTH - 150, 24);
+  ctx.font = '14px "Rubik"';
+  wrapPixelText(step.text, WIDTH - 70, HEIGHT - 82, WIDTH - 150, 28);
   ctx.direction = "ltr";
   ctx.textAlign = "start";
 
   if (state.introTime <= 0) {
     ctx.textAlign = "center";
-    ctx.font = '14px "Press Start 2P"';
-    ctx.fillText("PRESS ENTER", WIDTH / 2, HEIGHT / 2 + 120);
+    ctx.font = '18px "Rubik"';
+    ctx.fillText("לחצו אנטר", WIDTH / 2, HEIGHT / 2 + 120);
     ctx.textAlign = "start";
   }
 }
 
-function drawOverlay() {
-  if (state.mode === "intro" || !state.gameOver) {
+function drawStageOverlay() {
+  if (state.mode !== "survival") {
+    return;
+  }
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+  ctx.fillRect(18, 16, 380, 48);
+  ctx.strokeStyle = "#ffb347";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(18, 16, 380, 48);
+  ctx.direction = "rtl";
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#f6edcf";
+  ctx.font = '14px "Rubik"';
+  ctx.fillText(stageDefs[state.stageIndex].name, 380, 46);
+  ctx.textAlign = "start";
+  ctx.direction = "ltr";
+
+  if (state.stageIndex === 4 && state.core && state.core.hp > 0) {
+    drawGroundShadow(state.core.x + state.core.width / 2, 72, 0.16);
+    const ratio = state.core.hp / state.core.maxHp;
+    ctx.fillStyle = "#250a12";
+    ctx.fillRect(620, 18, 230, 20);
+    ctx.fillStyle = "#ff5d73";
+    ctx.fillRect(620, 18, 230 * ratio, 20);
+    ctx.strokeStyle = "#f6edcf";
+    ctx.strokeRect(620, 18, 230, 20);
+  }
+
+  drawHeartHud();
+}
+
+function drawHeartHud() {
+  const heartSize = 16;
+  const startX = 24;
+  const y = 76;
+
+  for (let i = 0; i < 3; i += 1) {
+    const filled = i < state.player.hp;
+    const x = startX + i * 28;
+    ctx.fillStyle = filled ? "#d93a4f" : "#4a2329";
+    ctx.fillRect(x + 4, y, 8, 8);
+    ctx.fillRect(x + 12, y, 8, 8);
+    ctx.fillRect(x + 2, y + 6, 18, 8);
+    ctx.fillRect(x + 4, y + 14, 14, 8);
+    ctx.fillRect(x + 6, y + 22, 10, 6);
+    ctx.fillStyle = filled ? "#ff9aa5" : "#6a3a41";
+    ctx.fillRect(x + 5, y + 2, 4, 3);
+    ctx.fillRect(x + 13, y + 2, 4, 3);
+  }
+}
+
+function drawTransitionOverlay() {
+  if (state.transitionTimer <= 0) {
+    return;
+  }
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.62)";
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#f6edcf";
+  ctx.font = '24px "Rubik"';
+  ctx.fillText("המשימה הושלמה", WIDTH / 2, HEIGHT / 2 - 24);
+  ctx.direction = "rtl";
+  ctx.font = '16px "Rubik"';
+  ctx.fillText(state.transitionText, WIDTH / 2, HEIGHT / 2 + 24);
+  ctx.direction = "ltr";
+  ctx.textAlign = "start";
+}
+
+function drawDialogueOverlay() {
+  if (!state.dialogueText) {
+    return;
+  }
+
+  ctx.fillStyle = "rgba(16, 12, 18, 0.74)";
+  ctx.fillRect(54, HEIGHT - 170, WIDTH - 108, 84);
+  ctx.strokeStyle = "#ffd38d";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(54, HEIGHT - 170, WIDTH - 108, 84);
+  ctx.direction = "rtl";
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#f6edcf";
+  ctx.font = '16px "Rubik"';
+  wrapPixelText(state.dialogueText, WIDTH - 80, HEIGHT - 138, WIDTH - 160, 22);
+  ctx.direction = "ltr";
+  ctx.textAlign = "start";
+}
+
+function drawEndOverlay() {
+  if (!state.gameOver && !state.victory) {
     return;
   }
 
@@ -813,38 +1873,61 @@ function drawOverlay() {
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
   ctx.fillStyle = "#f6edcf";
   ctx.textAlign = "center";
-  ctx.font = '26px "Press Start 2P"';
-  ctx.fillText("GAME OVER", WIDTH / 2, HEIGHT / 2 - 22);
-  ctx.font = '14px "Press Start 2P"';
-  ctx.fillText(`Kills ${state.score}`, WIDTH / 2, HEIGHT / 2 + 24);
-  ctx.fillText("Press R", WIDTH / 2, HEIGHT / 2 + 56);
+  ctx.font = '30px "Rubik"';
+  ctx.fillText(state.victory ? "ניצחתם" : "המשחק נגמר", WIDTH / 2, HEIGHT / 2 - 28);
+  ctx.direction = "rtl";
+  ctx.font = '16px "Rubik"';
+  ctx.fillText(
+    state.victory ? "הילד עצר את הפלישה והחזיר את הלילה." : "האפוקליפסה ניצחה הפעם.",
+    WIDTH / 2,
+    HEIGHT / 2 + 16,
+  );
+  ctx.direction = "ltr";
+  ctx.fillText("לחצו ר", WIDTH / 2, HEIGHT / 2 + 58);
   ctx.textAlign = "start";
 }
 
 function update(dt) {
   if (state.mode === "intro") {
     updateIntro(dt);
-  } else if (!state.gameOver) {
+    updateEffects(dt);
+    return;
+  }
+
+  if (!state.gameOver && !state.victory && state.transitionTimer <= 0) {
     updatePlayer(dt);
     updateZombies(dt);
+    updateAliens(dt);
+    updateAlly(dt);
     updateShots(dt);
+    updateStageObjective();
     updateSpawns(dt);
   }
+
+  updateTransitions(dt);
   updateEffects(dt);
 }
 
 function render() {
-  drawBackground(state.time);
+  drawBaseBackground(state.time);
+  drawAtmosphere();
+
   if (state.mode === "intro") {
     drawIntroScene();
   } else {
+    drawStageScenery();
     drawZombies();
+    drawAliens();
+    drawAlly();
     drawPlayer();
     drawShots();
     drawEffects();
-    drawGestureTrail();
+    drawStageOverlay();
   }
-  drawOverlay();
+
+  drawDialogueOverlay();
+  drawTransitionOverlay();
+  drawEndOverlay();
 }
 
 let lastFrame = performance.now();
@@ -860,7 +1943,7 @@ function frame(now) {
 }
 
 window.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
+  if (event.key === "Enter" || event.code === "Enter") {
     if (state.mode === "intro" && state.introTime <= 0) {
       startIntro();
     } else if (state.mode === "intro") {
@@ -868,41 +1951,42 @@ window.addEventListener("keydown", (event) => {
     }
   }
 
-  if (["ArrowUp", "w", "W", " "].includes(event.key)) {
+  if (event.key === "ArrowUp" || event.code === "KeyW") {
     jumpPlayer();
   }
 
-  if (event.key === "r" || event.key === "R") {
+  if (event.key === " " || event.code === "Space") {
+    event.preventDefault();
+    fireShot();
+  }
+
+  if (event.key === "ר" || event.key === "r" || event.key === "R" || event.code === "KeyR") {
     resetGame();
   }
 
+  keys.add(event.code);
   keys.add(event.key);
 });
 
 window.addEventListener("keyup", (event) => {
+  keys.delete(event.code);
   keys.delete(event.key);
 });
 
-canvas.addEventListener("pointerdown", (event) => {
+canvas.addEventListener("pointerdown", () => {
   if (state.mode === "intro") {
     if (state.introTime <= 0) {
       startIntro();
     } else {
       beginSurvivalMode();
     }
-    return;
   }
-
-  beginGesture(event.clientX, event.clientY);
 });
 
-canvas.addEventListener("pointermove", (event) => {
-  moveGesture(event.clientX, event.clientY);
+canvas.addEventListener("contextmenu", (event) => {
+  event.preventDefault();
+  fireShot();
 });
-
-canvas.addEventListener("pointerup", endGesture);
-canvas.addEventListener("pointerleave", endGesture);
-canvas.addEventListener("pointercancel", endGesture);
 
 resetGame();
 requestAnimationFrame(frame);

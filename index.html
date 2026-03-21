@@ -3,20 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Last Kid Standing</title>
+    <title>הילד האחרון</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Press+Start+2P&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260321b" />
   </head>
   <body>
     <main class="shell">
       <section class="intro">
-        <p class="eyebrow">Alien Fall // 1990s Pixel Survival</p>
-        <h1>Last Kid Standing</h1>
+        <p class="eyebrow">נפילת החייזרים // גרסת פרק 5</p>
+        <h1>הילד האחרון</h1>
         <p class="pitch">
           הסיפור מתחיל בבית ספר רגיל, ממשיך בפגיעת אימה מהשמיים, ונגמר
           בילד אחד בבונקר שנשאר האדם האחרון.
@@ -28,21 +28,22 @@
           <li>גם הם נופלים, והוא נשאר לבד מול העולם.</li>
         </ol>
         <ul class="controls">
-          <li><span>התחלה</span> Enter או לחיצה על המסך</li>
-          <li><span>תנועה</span> חצים או WASD</li>
-          <li><span>קפיצה</span> רווח / W / חץ למעלה</li>
-          <li><span>ירי</span> מחוות עכבר או טאץ': ימינה ואז למעלה</li>
-          <li><span>דילוג / אתחול</span> Enter / R</li>
+          <li><span>התחלה</span> אנטר או לחיצה על המסך</li>
+          <li><span>תנועה</span> חצים או מקשי התנועה</li>
+          <li><span>קפיצה</span> מקש עליון או חץ למעלה</li>
+          <li><span>ירי</span> רווח או קליק ימני בעכבר</li>
+          <li><span>דילוג / אתחול</span> אנטר / ר</li>
         </ul>
       </section>
 
       <section class="game-panel">
         <div class="hud" aria-live="polite">
           <div><span>חיים</span> <strong id="health">3</strong></div>
-          <div><span>גל</span> <strong id="wave">1</strong></div>
+          <div><span>שלב</span> <strong id="wave">1</strong></div>
           <div><span>חיסולים</span> <strong id="score">0</strong></div>
           <div><span>מצב</span> <strong id="status">שורד</strong></div>
         </div>
+        <div class="mission-bar"><span>משימה</span> <strong id="mission">התחילו את סצנת הפתיחה</strong></div>
         <canvas
           id="game"
           width="960"
@@ -50,11 +51,11 @@
           aria-label="משחק הישרדות רטרו"
         ></canvas>
         <p class="hint" id="hint">
-          לחצו Enter או לחצו על המסך כדי להתחיל את סצנת הפתיחה.
+          לחצו אנטר או לחצו על המסך כדי להתחיל את סצנת הפתיחה.
         </p>
       </section>
     </main>
 
-    <script src="./game.js"></script>
+    <script src="./game.js?v=20260321b"></script>
   </body>
 </html>
