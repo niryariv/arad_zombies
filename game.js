@@ -15,6 +15,7 @@ const GRAVITY = 1800;
 const PLAYER_SPEED = 220;
 const JUMP_FORCE = 650;
 const ZOMBIE_BASE_SPEED = 70;
+const CHEAT_CODE = ["KeyI", "KeyM", "KeyM", "KeyO", "KeyR", "KeyT", "KeyA", "KeyL"];
 
 const keys = new Set();
 
@@ -248,6 +249,8 @@ const state = {
   dialogueText: "",
   exitGate: null,
   core: null,
+  immortal: false,
+  cheatBuffer: [],
 };
 
 const platforms = [
@@ -315,6 +318,8 @@ function resetGame() {
   state.dialogueText = "";
   state.exitGate = null;
   state.core = null;
+  state.immortal = false;
+  state.cheatBuffer = [];
   setStatus("פתיחה");
   setHint("לחצו אנטר או לחצו על המסך כדי להתחיל את סצנת הפתיחה.");
   syncHud();
@@ -662,6 +667,7 @@ function addFloatingText(x, y, text, color) {
 
 function damagePlayer() {
   if (
+    state.immortal ||
     state.invulnerableTimer > 0 ||
     state.gameOver ||
     state.victory ||
@@ -683,6 +689,27 @@ function damagePlayer() {
   } else {
     setStatus("נפגע");
   }
+}
+
+function handleCheatCode(code) {
+  if (!code.startsWith("Key")) {
+    return;
+  }
+
+  state.cheatBuffer.push(code);
+  if (state.cheatBuffer.length > CHEAT_CODE.length) {
+    state.cheatBuffer.shift();
+  }
+
+  const matches = CHEAT_CODE.every((key, index) => state.cheatBuffer[index] === key);
+  if (!matches) {
+    return;
+  }
+
+  state.immortal = !state.immortal;
+  state.cheatBuffer = [];
+  setStatus(state.immortal ? "קוד צ'יט פעיל" : "קוד צ'יט כבוי");
+  setHint(state.immortal ? "מצב אלמוות פעיל. הקלידו IMMORTAL שוב כדי לכבות." : "מצב אלמוות כובה.");
 }
 
 function jumpPlayer() {
@@ -2151,6 +2178,20 @@ function drawStageOverlay() {
     ctx.strokeRect(620, 18, 230, 20);
   }
 
+  if (state.immortal) {
+    ctx.fillStyle = "rgba(129, 255, 150, 0.18)";
+    ctx.fillRect(18, 70, 146, 28);
+    ctx.strokeStyle = "#8fff96";
+    ctx.strokeRect(18, 70, 146, 28);
+    ctx.direction = "rtl";
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#dfffe5";
+    ctx.font = '12px "Rubik"';
+    ctx.fillText("אלמוות פעיל", 154, 89);
+    ctx.direction = "ltr";
+    ctx.textAlign = "start";
+  }
+
   drawHeartHud();
 }
 
@@ -2290,6 +2331,8 @@ function frame(now) {
 }
 
 window.addEventListener("keydown", (event) => {
+  handleCheatCode(event.code);
+
   if (event.key === "Enter" || event.code === "Enter") {
     if (state.mode === "intro" && state.introTime <= 0) {
       startIntro();
