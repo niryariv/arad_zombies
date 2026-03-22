@@ -372,8 +372,18 @@ function createPlayer() {
 }
 
 function createPlayerState(config, x) {
+  const controls =
+    state.playerCount === 1 && config.id === 1
+      ? {
+          ...config,
+          left: [...new Set([...config.left, "ArrowLeft"])],
+          right: [...new Set([...config.right, "ArrowRight"])],
+          jump: [...new Set([...config.jump, "ArrowUp"])],
+        }
+      : config;
+
   return {
-    id: config.id,
+    id: controls.id,
     x,
     y: 220,
     width: 26,
@@ -385,7 +395,7 @@ function createPlayerState(config, x) {
     hp: 3,
     shootFlash: 0,
     alive: true,
-    config,
+    config: controls,
   };
 }
 
