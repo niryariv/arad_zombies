@@ -165,13 +165,13 @@ const stageDefs = [
   {
     name: "מגרש",
     status: "ספורט",
-    hint: "חסלו 7 שחקני כדורגל זומבים שבועטים עליכם כדורים במגרש האפור.",
+    hint: "חסלו 7 שחקני כדורגל זומבים שזורקים עליכם כדורי רגל וכדורי סל במגרש האפור.",
     objective: "killGate",
     target: 7,
     scenery: "football",
     enemyName: "שחקני כדורגל",
-    weaponName: "כדורי כדורגל",
-    weaponType: "footballs",
+    weaponName: "כדורי רגל וכדורי סל",
+    weaponType: "sports-balls",
     zombies: 7,
     aliens: 0,
   },
@@ -796,10 +796,15 @@ function updateEnemyAttacks(dt) {
     }
   }
 
+  const actualWeaponType =
+    stage.weaponType === "sports-balls"
+      ? (Math.random() < 0.5 ? "footballs" : "basketballs")
+      : stage.weaponType;
+
   spawnEnemyShot(
     { x: attacker.x + attacker.width / 2, y: attacker.y + 16 },
     { x: target.x + target.width / 2, y: target.y + 18 },
-    stage.weaponType,
+    actualWeaponType,
   );
   state.enemyAttackTimer = 1.1 + Math.random() * 0.8;
 }
