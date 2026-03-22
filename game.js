@@ -275,6 +275,8 @@ const state = {
   introStep: 0,
   stageIndex: -1,
   stageKills: 0,
+  stageZombiesSpawned: 0,
+  stageReinforcementsSpawned: 0,
   spawnTimer: 0,
   alienSpawnTimer: 0,
   enemyAttackTimer: 0,
@@ -465,6 +467,8 @@ function resetGame() {
   state.introStep = 0;
   state.stageIndex = -1;
   state.stageKills = 0;
+  state.stageZombiesSpawned = 0;
+  state.stageReinforcementsSpawned = 0;
   state.spawnTimer = 0;
   state.alienSpawnTimer = 0;
   state.enemyAttackTimer = 0;
@@ -516,6 +520,30 @@ function setMission(text) {
 function syncModeButtons() {
   modeOneEl?.classList.toggle("is-selected", state.playerCount === 1);
   modeTwoEl?.classList.toggle("is-selected", state.playerCount === 2);
+}
+
+function getStageBaseZombieCount(stage = currentStageDef()) {
+  if (!stage?.zombies) {
+    return 0;
+  }
+
+  return 5;
+}
+
+function getStageReinforcementLimit(stage = currentStageDef()) {
+  if (!stage?.zombies) {
+    return 0;
+  }
+
+  return (state.stageIndex + 1) * 2;
+}
+
+function canSpawnReinforcementZombie(stage = currentStageDef()) {
+  return state.stageReinforcementsSpawned < getStageReinforcementLimit(stage);
+}
+
+function getStageZombieSpawnCap(stage = currentStageDef()) {
+  return getStageBaseZombieCount(stage) + getStageReinforcementLimit(stage);
 }
 
 function clamp(value, min, max) {
@@ -649,6 +677,8 @@ function configureStage(index) {
   state.stageIndex = index;
   state.wave = index + 1;
   state.stageKills = 0;
+  state.stageZombiesSpawned = 0;
+  state.stageReinforcementsSpawned = 0;
   state.zombies = [];
   state.aliens = [];
   state.shots = [];
@@ -753,6 +783,12 @@ function spawnZombie(options = {}) {
     hp: state.stageIndex >= 8 ? 2 : 1,
     tint: Math.random() < 0.5 ? "#9df57a" : "#89ffd2",
   });
+
+  if (options.reinforcement) {
+    state.stageReinforcementsSpawned += 1;
+  }
+
+  state.stageZombiesSpawned += 1;
 }
 
 function spawnAlienDrone() {
@@ -788,7 +824,8 @@ function spawnEnemyShot(from, to, weaponType) {
 function seedStageEnemies() {
   const stage = currentStageDef();
   const spawnPoints = getSpawnPoints(state.stageIndex);
-  while (state.zombies.length < stage.zombies) {
+  const baseZombieCount = getStageBaseZombieCount(stage);
+  while (state.zombies.length < baseZombieCount && state.stageZombiesSpawned < baseZombieCount) {
     spawnZombie(spawnPoints[state.zombies.length % spawnPoints.length]);
   }
   while (state.aliens.length < stage.aliens) {
@@ -1414,6 +1451,8 @@ function updateSpawns(dt) {
   }
 
   const stage = currentStageDef();
+  const baseZombieCount = getStageBaseZombieCount(stage);
+  const zombieSpawnCap = getStageZombieSpawnCap(stage);
   state.spawnTimer -= dt;
   state.alienSpawnTimer -= dt;
 
@@ -1421,8 +1460,14 @@ function updateSpawns(dt) {
     if (state.zombies.length === 0 && state.stageKills < stage.target) {
       seedStageEnemies();
     }
-    if (state.stageKills < stage.target && state.zombies.length < stage.zombies && state.spawnTimer <= 0) {
-      spawnZombie();
+    if (
+      state.stageKills < stage.target &&
+      state.zombies.length < baseZombieCount &&
+      state.stageZombiesSpawned < zombieSpawnCap &&
+      canSpawnReinforcementZombie(stage) &&
+      state.spawnTimer <= 0
+    ) {
+      spawnZombie({ reinforcement: true });
       state.spawnTimer = 0.7 + Math.random() * 0.45;
     }
   } else if (stage.objective === "activate") {
@@ -1430,8 +1475,14 @@ function updateSpawns(dt) {
     if (activeCount < state.generators.length && state.zombies.length === 0) {
       seedStageEnemies();
     }
-    if (activeCount < state.generators.length && state.zombies.length < stage.zombies && state.spawnTimer <= 0) {
-      spawnZombie();
+    if (
+      activeCount < state.generators.length &&
+      state.zombies.length < baseZombieCount &&
+      state.stageZombiesSpawned < zombieSpawnCap &&
+      canSpawnReinforcementZombie(stage) &&
+      state.spawnTimer <= 0
+    ) {
+      spawnZombie({ reinforcement: true });
       state.spawnTimer = 0.95 + Math.random() * 0.55;
     }
     if (stage.aliens > 0 && state.aliens.length < stage.aliens && state.alienSpawnTimer <= 0) {
@@ -1447,8 +1498,13 @@ function updateSpawns(dt) {
     if (state.zombies.length === 0 || (stage.aliens > 0 && state.aliens.length === 0)) {
       seedStageEnemies();
     }
-    if (state.zombies.length < stage.zombies && state.spawnTimer <= 0) {
-      spawnZombie();
+    if (
+      state.zombies.length < baseZombieCount &&
+      state.stageZombiesSpawned < zombieSpawnCap &&
+      canSpawnReinforcementZombie(stage) &&
+      state.spawnTimer <= 0
+    ) {
+      spawnZombie({ reinforcement: true });
       state.spawnTimer = 0.8 + Math.random() * 0.45;
     }
     if (state.aliens.length < stage.aliens && state.alienSpawnTimer <= 0) {
@@ -1459,8 +1515,13 @@ function updateSpawns(dt) {
     if (state.zombies.length === 0 || (stage.aliens > 0 && state.aliens.length === 0)) {
       seedStageEnemies();
     }
-    if (state.zombies.length < stage.zombies && state.spawnTimer <= 0) {
-      spawnZombie();
+    if (
+      state.zombies.length < baseZombieCount &&
+      state.stageZombiesSpawned < zombieSpawnCap &&
+      canSpawnReinforcementZombie(stage) &&
+      state.spawnTimer <= 0
+    ) {
+      spawnZombie({ reinforcement: true });
       state.spawnTimer = 0.7 + Math.random() * 0.45;
     }
     if (state.aliens.length < stage.aliens && state.alienSpawnTimer <= 0) {
@@ -1471,8 +1532,13 @@ function updateSpawns(dt) {
     if (state.zombies.length === 0 || (stage.aliens > 0 && state.aliens.length === 0)) {
       seedStageEnemies();
     }
-    if (state.zombies.length < stage.zombies && state.spawnTimer <= 0) {
-      spawnZombie();
+    if (
+      state.zombies.length < baseZombieCount &&
+      state.stageZombiesSpawned < zombieSpawnCap &&
+      canSpawnReinforcementZombie(stage) &&
+      state.spawnTimer <= 0
+    ) {
+      spawnZombie({ reinforcement: true });
       state.spawnTimer = 0.85 + Math.random() * 0.55;
     }
     if (state.aliens.length < stage.aliens && state.alienSpawnTimer <= 0) {
