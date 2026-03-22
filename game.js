@@ -732,7 +732,12 @@ function spawnZombie(options = {}) {
   const fallbackSpawn = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
   const side = options.side ?? fallbackSpawn.side ?? (Math.random() < 0.5 ? -1 : 1);
   const stageFactor = 1 + state.stageIndex * 0.15;
-  const speed = ZOMBIE_BASE_SPEED * stageFactor + Math.random() * 24;
+  const speedClassRoll = Math.random();
+  const speedMultiplier =
+    speedClassRoll < 0.25 ? 0.7 :
+    speedClassRoll < 0.7 ? 1 :
+    1.35;
+  const speed = (ZOMBIE_BASE_SPEED * stageFactor + Math.random() * 18) * speedMultiplier;
   const x = options.x ?? fallbackSpawn.x;
   const y = options.y ?? fallbackSpawn.y ?? (GROUND_Y - 56);
   state.zombies.push({
@@ -744,6 +749,7 @@ function spawnZombie(options = {}) {
     vx: side < 0 ? speed : -speed,
     vy: 0,
     speed,
+    speedMultiplier,
     hp: state.stageIndex >= 8 ? 2 : 1,
     tint: Math.random() < 0.5 ? "#9df57a" : "#89ffd2",
   });
