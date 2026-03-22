@@ -2548,16 +2548,16 @@ function drawIntroScene() {
   ctx.direction = "rtl";
   ctx.textAlign = "right";
   ctx.fillStyle = "#f6edcf";
-  ctx.font = '18px "Rubik"';
+  ctx.font = '700 22px "Rubik"';
   ctx.fillText(step.title, WIDTH - 70, HEIGHT - 112);
-  ctx.font = '14px "Rubik"';
-  wrapPixelText(step.text, WIDTH - 70, HEIGHT - 82, WIDTH - 150, 28);
+  ctx.font = '500 18px "Rubik"';
+  wrapPixelText(step.text, WIDTH - 70, HEIGHT - 78, WIDTH - 150, 32);
   ctx.direction = "ltr";
   ctx.textAlign = "start";
 
   if (state.introTime <= 0) {
     ctx.textAlign = "center";
-    ctx.font = '18px "Rubik"';
+    ctx.font = '700 18px "Rubik"';
     ctx.fillText("לחצו אנטר", WIDTH / 2, HEIGHT / 2 + 120);
     ctx.textAlign = "start";
   }
