@@ -2086,22 +2086,113 @@ function drawAlly() {
   );
 }
 
+function getZombiePalette(stage, zombie) {
+  if (stage.scenery === "kindergarten") {
+    return { skin: "#d8c6aa", hair: "#a75858", shirt: "#f2d45f", pants: "#7c6ab1", boots: "#533d33", arm: "#d8c6aa" };
+  }
+  if (stage.scenery === "agClass") {
+    return { skin: "#b8c39f", hair: "#3e4d2c", shirt: "#e0d39c", pants: "#6f5d58", boots: "#3b2f2a", arm: "#b8c39f" };
+  }
+  if (stage.scenery === "dvClass") {
+    return { skin: "#9eb08d", hair: "#4a403d", shirt: "#6d625f", pants: "#504947", boots: "#302726", arm: "#9eb08d" };
+  }
+  if (stage.scenery === "highSchool") {
+    return { skin: "#b1c48f", hair: "#5a3521", shirt: "#d47a36", pants: "#6d4c5c", boots: "#332421", arm: "#b1c48f" };
+  }
+  if (stage.scenery === "football") {
+    return { skin: "#b6c890", hair: "#2f3f28", shirt: "#7bcf6d", pants: "#f1f1f1", boots: "#282425", arm: "#b6c890" };
+  }
+  if (stage.scenery === "library") {
+    return { skin: "#e0b15a", hair: "#c94f43", shirt: "#f0d39a", pants: "#7a4e33", boots: "#503026", arm: "#e0b15a" };
+  }
+  if (stage.scenery === "pool") {
+    return { skin: "#b6c0a2", hair: "#25435d", shirt: "#53a9d8", pants: "#2f5f88", boots: "#26445d", arm: "#b6c0a2" };
+  }
+  if (stage.scenery === "robotics") {
+    return { skin: "#d8c6aa", hair: "#7db6d6", shirt: "#f2d45f", pants: "#76b86f", boots: "#533d33", arm: "#d8c6aa" };
+  }
+  if (stage.scenery === "pizza") {
+    return { skin: "#c3b88e", hair: "#6b3e2f", shirt: zombie.tint === "#9df57a" ? "#f4e6bf" : "#cb4f43", pants: "#5e5a4d", boots: "#3a2b24", arm: "#c3b88e" };
+  }
+  if (stage.scenery === "sportsField") {
+    return { skin: "#b9c391", hair: "#42312d", shirt: "#5f87d8", pants: "#2d4d7a", boots: "#2a2524", arm: "#b9c391" };
+  }
+  if (stage.scenery === "pub") {
+    return { skin: "#b8b194", hair: "#342421", shirt: "#6d4a45", pants: "#473b3a", boots: "#261d1d", arm: "#b8b194" };
+  }
+  return {
+    skin: "#bac18f",
+    hair: "#314026",
+    shirt: zombie.tint === "#9df57a" ? "#73cc63" : "#56bca7",
+    pants: "#6c4f63",
+    boots: "#2d2322",
+    arm: "#aab586",
+  };
+}
+
+function drawZombieAccessory(stage, zombie) {
+  const x = zombie.x;
+  const y = zombie.y;
+  if (stage.scenery === "kindergarten") {
+    ctx.fillStyle = "#e3695d";
+    ctx.fillRect(x + 6, y + 10, 14, 10);
+  } else if (stage.scenery === "agClass") {
+    ctx.fillStyle = "#e9d79d";
+    ctx.fillRect(x + 22, y + 18, 12, 3);
+  } else if (stage.scenery === "highSchool") {
+    ctx.fillStyle = "#d47a36";
+    ctx.beginPath();
+    ctx.arc(x + 24, y + 18, 6, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (stage.scenery === "football") {
+    ctx.fillStyle = "#e7e7e7";
+    ctx.fillRect(x + 22, y + 18, 10, 10);
+    ctx.fillStyle = "#2f2f2f";
+    ctx.fillRect(x + 25, y + 21, 4, 4);
+  } else if (stage.scenery === "library") {
+    ctx.fillStyle = "#e0b15a";
+    ctx.beginPath();
+    ctx.moveTo(x + 26, y + 16);
+    ctx.lineTo(x + 34, y + 28);
+    ctx.lineTo(x + 18, y + 28);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#c94f43";
+    ctx.fillRect(x + 24, y + 22, 2, 2);
+    ctx.fillRect(x + 28, y + 24, 2, 2);
+  } else if (stage.scenery === "pool") {
+    ctx.fillStyle = "#7cd7ff";
+    ctx.fillRect(x + 18, y + 14, 14, 4);
+  } else if (stage.scenery === "robotics") {
+    ctx.fillStyle = "#e3695d";
+    ctx.fillRect(x + 8, y + 14, 8, 8);
+    ctx.fillStyle = "#7db6d6";
+    ctx.fillRect(x + 16, y + 16, 8, 8);
+  } else if (stage.scenery === "pizza") {
+    ctx.fillStyle = "#f0f0f0";
+    ctx.fillRect(x + 8, y + 6, 12, 6);
+    ctx.fillStyle = "#cb4f43";
+    ctx.fillRect(x + 12, y + 18, 12, 10);
+  } else if (stage.scenery === "sportsField") {
+    ctx.fillStyle = "#5f87d8";
+    ctx.fillRect(x + 8, y + 10, 14, 6);
+  } else if (stage.scenery === "pub") {
+    ctx.fillStyle = "#d6ae59";
+    ctx.fillRect(x + 22, y + 14, 5, 14);
+  }
+}
+
 function drawZombies() {
+  const stage = currentStageDef();
   for (const zombie of state.zombies) {
     drawGroundShadow(zombie.x + zombie.width / 2, 18, 0.18, zombie.y + zombie.height + 4);
     drawZombieFigure(
       zombie.x,
       zombie.y,
-      {
-        skin: "#bac18f",
-        hair: "#314026",
-        shirt: zombie.tint === "#9df57a" ? "#73cc63" : "#56bca7",
-        pants: "#6c4f63",
-        boots: "#2d2322",
-        arm: "#aab586",
-      },
+      getZombiePalette(stage, zombie),
       zombie.vx > 0,
     );
+    drawZombieAccessory(stage, zombie);
   }
 }
 
