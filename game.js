@@ -7,6 +7,8 @@ const scoreEl = document.getElementById("score");
 const statusEl = document.getElementById("status");
 const hintEl = document.getElementById("hint");
 const missionEl = document.getElementById("mission");
+const modeOneEl = document.getElementById("mode-one");
+const modeTwoEl = document.getElementById("mode-two");
 
 const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
@@ -464,6 +466,11 @@ function setMission(text) {
   missionEl.textContent = text;
 }
 
+function syncModeButtons() {
+  modeOneEl?.classList.toggle("is-selected", state.playerCount === 1);
+  modeTwoEl?.classList.toggle("is-selected", state.playerCount === 2);
+}
+
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
@@ -661,6 +668,7 @@ function configureStage(index) {
     : null;
   seedStageEnemies();
   syncHud();
+  syncModeButtons();
 }
 
 function beginSurvivalMode() {
@@ -2550,15 +2558,7 @@ function drawIntroScene() {
   if (state.introTime <= 0) {
     ctx.textAlign = "center";
     ctx.font = '18px "Rubik"';
-    ctx.fillText("בחרו מצב משחק", WIDTH / 2, HEIGHT / 2 + 88);
-    ctx.font = '16px "Rubik"';
-    ctx.fillStyle = state.playerCount === 1 ? "#ffd38d" : "#f6edcf";
-    ctx.fillText("1 - שחקן אחד", WIDTH / 2, HEIGHT / 2 + 120);
-    ctx.fillStyle = state.playerCount === 2 ? "#ffd38d" : "#f6edcf";
-    ctx.fillText("2 - שני שחקנים", WIDTH / 2, HEIGHT / 2 + 148);
-    ctx.fillStyle = "#f6edcf";
-    ctx.font = '14px "Rubik"';
-    ctx.fillText("אנטר להתחלה", WIDTH / 2, HEIGHT / 2 + 182);
+    ctx.fillText("לחצו אנטר", WIDTH / 2, HEIGHT / 2 + 120);
     ctx.textAlign = "start";
   }
 }
@@ -2813,6 +2813,18 @@ canvas.addEventListener("pointerdown", () => {
 canvas.addEventListener("contextmenu", (event) => {
   event.preventDefault();
   fireShot(state.players[0]);
+});
+
+modeOneEl?.addEventListener("click", () => {
+  if (state.mode === "intro" && state.introTime <= 0) {
+    setPlayerCount(1);
+  }
+});
+
+modeTwoEl?.addEventListener("click", () => {
+  if (state.mode === "intro" && state.introTime <= 0) {
+    setPlayerCount(2);
+  }
 });
 
 resetGame();
