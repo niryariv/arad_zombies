@@ -2187,7 +2187,7 @@ function getZombiePalette(stage, zombie) {
     return { skin: "#b6c890", hair: "#2f3f28", shirt: "#7bcf6d", pants: "#f1f1f1", boots: "#282425", arm: "#b6c890" };
   }
   if (stage.scenery === "library") {
-    return { skin: "#e0b15a", hair: "#c94f43", shirt: "#f0d39a", pants: "#7a4e33", boots: "#503026", arm: "#e0b15a" };
+    return { skin: "#b7c2a0", hair: "#544239", shirt: "#7c5b89", pants: "#60514e", boots: "#312728", arm: "#b7c2a0" };
   }
   if (stage.scenery === "pool") {
     return { skin: "#b6c0a2", hair: "#25435d", shirt: "#53a9d8", pants: "#2f5f88", boots: "#26445d", arm: "#b6c0a2" };
@@ -2234,16 +2234,13 @@ function drawZombieAccessory(stage, zombie) {
     ctx.fillStyle = "#2f2f2f";
     ctx.fillRect(x + 25, y + 21, 4, 4);
   } else if (stage.scenery === "library") {
-    ctx.fillStyle = "#e0b15a";
-    ctx.beginPath();
-    ctx.moveTo(x + 26, y + 16);
-    ctx.lineTo(x + 34, y + 28);
-    ctx.lineTo(x + 18, y + 28);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "#c94f43";
-    ctx.fillRect(x + 24, y + 22, 2, 2);
-    ctx.fillRect(x + 28, y + 24, 2, 2);
+    ctx.fillStyle = "#d8ccb7";
+    ctx.fillRect(x + 8, y + 6, 10, 3);
+    ctx.fillRect(x + 10, y + 10, 6, 2);
+    ctx.fillStyle = "#6c4f63";
+    ctx.fillRect(x + 19, y + 16, 12, 10);
+    ctx.fillStyle = "#d8ccb7";
+    ctx.fillRect(x + 29, y + 17, 2, 8);
   } else if (stage.scenery === "pool") {
     ctx.fillStyle = "#7cd7ff";
     ctx.fillRect(x + 18, y + 14, 14, 4);
