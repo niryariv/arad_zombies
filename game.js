@@ -21,6 +21,66 @@ const IMMORTAL_QUERY_ENABLED = (() => {
   const value = params.get("immortal") ?? params.get("cheat");
   return value === "1" || value === "true" || value === "on";
 })();
+const PLAYER_CONFIGS = [
+  {
+    id: 1,
+    label: "שחקן 1",
+    left: ["KeyA"],
+    right: ["KeyD"],
+    jump: ["KeyW"],
+    shoot: ["KeyF", "Space"],
+    palette: {
+      skin: "#efc399",
+      skinShadow: "#c89672",
+      neck: "#b78360",
+      hair: "#8f5e3e",
+      shirt: "#6f8397",
+      shirtShadow: "#556675",
+      collar: "#d8d0bf",
+      coat: "#8f786d",
+      coatShadow: "#6c5b53",
+      pants: "#6c6f86",
+      pantsShadow: "#505467",
+      boots: "#6a4c37",
+      hand: "#efc399",
+      cheek: "rgba(188, 120, 94, 0.45)",
+    },
+    arm: "#e7bb90",
+    heart: "#d93a4f",
+    heartGlow: "#ff9aa5",
+    heartEmpty: "#4a2329",
+    heartEmptyGlow: "#6a3a41",
+  },
+  {
+    id: 2,
+    label: "שחקן 2",
+    left: ["ArrowLeft"],
+    right: ["ArrowRight"],
+    jump: ["ArrowUp"],
+    shoot: ["Slash", "ShiftRight"],
+    palette: {
+      skin: "#e6b993",
+      skinShadow: "#b68461",
+      neck: "#9d6f51",
+      hair: "#3d2d27",
+      shirt: "#5d8f7a",
+      shirtShadow: "#44695a",
+      collar: "#d5d7cf",
+      coat: "#6d8f9f",
+      coatShadow: "#4e6774",
+      pants: "#5b6781",
+      pantsShadow: "#404a5c",
+      boots: "#4f3d32",
+      hand: "#e6b993",
+      cheek: "rgba(164, 98, 82, 0.38)",
+    },
+    arm: "#ddb18a",
+    heart: "#4f7bff",
+    heartGlow: "#9eb9ff",
+    heartEmpty: "#1f2d55",
+    heartEmptyGlow: "#42527f",
+  },
+];
 
 const keys = new Set();
 
@@ -221,7 +281,7 @@ const stageDefs = [
 ];
 
 const state = {
-  player: null,
+  players: [],
   zombies: [],
   aliens: [],
   shots: [],
@@ -267,8 +327,13 @@ const platforms = [
 ];
 
 function createPlayer() {
+  return createPlayerState(PLAYER_CONFIGS[0], 160);
+}
+
+function createPlayerState(config, x) {
   return {
-    x: 160,
+    id: config.id,
+    x,
     y: 220,
     width: 26,
     height: 54,
@@ -278,6 +343,8 @@ function createPlayer() {
     onGround: false,
     hp: 3,
     shootFlash: 0,
+    alive: true,
+    config,
   };
 }
 
@@ -290,7 +357,10 @@ function createBunkerFriends() {
 }
 
 function resetGame() {
-  state.player = createPlayer();
+  state.players = [
+    createPlayerState(PLAYER_CONFIGS[0], 120),
+    createPlayerState(PLAYER_CONFIGS[1], 180),
+  ];
   state.zombies = [];
   state.aliens = [];
   state.shots = [];
@@ -335,7 +405,7 @@ function resetGame() {
 }
 
 function syncHud() {
-  healthEl.textContent = "לבבות";
+  healthEl.textContent = "לבבות: 1 אדום, 2 כחול";
   waveEl.textContent = state.stageIndex >= 0 ? `${state.stageIndex + 1}/${stageDefs.length}` : `0/${stageDefs.length}`;
   scoreEl.textContent = String(state.score);
   missionEl.textContent = state.mission;
@@ -399,6 +469,18 @@ function resolvePlatformLanding(entity, previousY) {
 
 function currentStageDef() {
   return stageDefs[state.stageIndex];
+}
+
+function activePlayers() {
+  return state.players.filter((player) => player.hp > 0 && player.alive !== false);
+}
+
+function leadPlayer() {
+  return activePlayers()[0] ?? state.players[0];
+}
+
+function anyPlayerOverlaps(target) {
+  return activePlayers().some((player) => rectsOverlap(player, target));
 }
 
 function createActivationNodes(count) {
@@ -506,13 +588,15 @@ function configureStage(index) {
   state.core = null;
   state.shotCooldown = 0;
   state.invulnerableTimer = 0.4;
-  state.player.vx = 0;
-  state.player.vy = 0;
-  state.player.facing = 1;
-  state.player.hp = clamp(state.player.hp + (index > 0 ? 1 : 0), 1, 3);
-
-  state.player.x = 120;
-  state.player.y = 220;
+  state.players.forEach((player, playerIndex) => {
+    player.vx = 0;
+    player.vy = 0;
+    player.facing = 1;
+    player.alive = true;
+    player.hp = clamp(player.hp + (index > 0 ? 1 : 0), 1, 3);
+    player.x = 120 + playerIndex * 56;
+    player.y = 220;
+  });
 
   if (stage.objective === "killGate") {
     state.exitGate = { x: 892, y: GROUND_Y - 96, width: 42, height: 96, active: false };
@@ -544,7 +628,7 @@ function configureStage(index) {
   setStatus(stage.status);
   setHint(stage.hint);
   state.ally = existingAlly?.active
-    ? { ...existingAlly, x: state.player.x + 54, y: state.player.y, shootCooldown: 0 }
+    ? { ...existingAlly, x: leadPlayer().x + 54, y: leadPlayer().y, shootCooldown: 0 }
     : null;
   seedStageEnemies();
   syncHud();
@@ -605,7 +689,7 @@ function seedStageEnemies() {
   }
 }
 
-function fireShot() {
+function fireShot(player) {
   if (
     state.gameOver ||
     state.victory ||
@@ -616,9 +700,8 @@ function fireShot() {
     return;
   }
 
-  const { player } = state;
   state.shots.push({
-    source: "player",
+    source: `player-${player.id}`,
     x: player.x + player.width / 2 + player.facing * 18,
     y: player.y + 18,
     vx: player.facing * 520,
@@ -674,7 +757,7 @@ function addFloatingText(x, y, text, color) {
   state.floatingTexts.push({ x, y, text, color, ttl: 0.8 });
 }
 
-function damagePlayer() {
+function damagePlayer(player) {
   if (
     state.immortal ||
     state.invulnerableTimer > 0 ||
@@ -686,15 +769,20 @@ function damagePlayer() {
     return;
   }
 
-  state.player.hp -= 1;
+  player.hp -= 1;
   state.invulnerableTimer = 1.25;
-  addFloatingText(state.player.x, state.player.y - 12, "-1", "#ff5d73");
+  addFloatingText(player.x, player.y - 12, "-1", "#ff5d73");
   syncHud();
 
-  if (state.player.hp <= 0) {
-    state.gameOver = true;
-    setStatus("האפלה");
-    setHint("לחצו ר כדי להתחיל מחדש.");
+  if (player.hp <= 0) {
+    player.alive = false;
+    if (activePlayers().length === 0) {
+      state.gameOver = true;
+      setStatus("האפלה");
+      setHint("לחצו ר כדי להתחיל מחדש.");
+    } else {
+      setStatus(`${player.config.label} נפל`);
+    }
   } else {
     setStatus("נפגע");
   }
@@ -721,16 +809,14 @@ function handleCheatCode(code) {
   setHint(state.immortal ? "מצב אלמוות פעיל. הקלידו IMMORTAL שוב כדי לכבות." : "מצב אלמוות כובה.");
 }
 
-function jumpPlayer() {
-  if (
-    state.player.onGround &&
-    !state.gameOver &&
-    !state.victory &&
-    state.mode === "survival" &&
-    state.transitionTimer <= 0
-  ) {
-    state.player.vy = -JUMP_FORCE;
-    state.player.onGround = false;
+function jumpPlayer(player) {
+  if (!player || player.hp <= 0) {
+    return;
+  }
+
+  if (player.onGround && !state.gameOver && !state.victory && state.mode === "survival" && state.transitionTimer <= 0) {
+    player.vy = -JUMP_FORCE;
+    player.onGround = false;
   }
 }
 
@@ -801,11 +887,14 @@ function updateIntro(dt) {
   }
 }
 
-function updatePlayer(dt) {
-  const { player } = state;
+function updatePlayer(player, dt) {
+  if (!player || player.hp <= 0) {
+    return;
+  }
+
   const previousY = player.y;
-  const moveLeft = keys.has("ArrowLeft") || keys.has("KeyA");
-  const moveRight = keys.has("ArrowRight") || keys.has("KeyD");
+  const moveLeft = player.config.left.some((code) => keys.has(code));
+  const moveRight = player.config.right.some((code) => keys.has(code));
   const desired = Number(moveRight) - Number(moveLeft);
 
   player.vx = desired * PLAYER_SPEED;
@@ -821,7 +910,7 @@ function updatePlayer(dt) {
   player.onGround = player.vy >= 0 && resolvePlatformLanding(player, previousY);
 
   if (player.y > HEIGHT + 120) {
-    damagePlayer();
+    damagePlayer(player);
     player.x = 120;
     player.y = 220;
     player.vx = 0;
@@ -832,11 +921,23 @@ function updatePlayer(dt) {
 }
 
 function updateZombies(dt) {
-  const { player } = state;
+  const players = activePlayers();
+  if (players.length === 0) {
+    return;
+  }
 
   for (const zombie of state.zombies) {
     const previousY = zombie.y;
-    const direction = zombie.x < player.x ? 1 : -1;
+    let target = players[0];
+    let nearestDistance = Infinity;
+    for (const player of players) {
+      const distance = Math.abs(zombie.x - player.x) + Math.abs(zombie.y - player.y);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        target = player;
+      }
+    }
+    const direction = zombie.x < target.x ? 1 : -1;
     zombie.vx = direction * zombie.speed;
     zombie.vy += GRAVITY * dt;
     zombie.x += zombie.vx * dt;
@@ -846,8 +947,10 @@ function updateZombies(dt) {
       resolvePlatformLanding(zombie, previousY);
     }
 
-    if (rectsOverlap(player, zombie)) {
-      damagePlayer();
+    for (const player of players) {
+      if (rectsOverlap(player, zombie)) {
+        damagePlayer(player);
+      }
     }
   }
 
@@ -855,6 +958,7 @@ function updateZombies(dt) {
 }
 
 function updateAliens(dt) {
+  const players = activePlayers();
   for (const alien of state.aliens) {
     alien.x += alien.vx * dt;
     alien.bob += dt * 3;
@@ -864,8 +968,10 @@ function updateAliens(dt) {
       alien.vx *= -1;
     }
 
-    if (rectsOverlap(state.player, alien)) {
-      damagePlayer();
+    for (const player of players) {
+      if (rectsOverlap(player, alien)) {
+        damagePlayer(player);
+      }
     }
   }
 }
@@ -876,7 +982,7 @@ function updateAlly(dt) {
   }
 
   const ally = state.ally;
-  const anchorX = clamp(state.player.x + 54, 40, WIDTH - 80);
+  const anchorX = clamp(leadPlayer().x + 54, 40, WIDTH - 80);
   ally.x += (anchorX - ally.x) * Math.min(1, dt * 4);
   ally.y = GROUND_Y - ally.height;
   ally.shootCooldown = Math.max(0, ally.shootCooldown - dt);
@@ -1044,7 +1150,7 @@ function updateStageObjective() {
     if (state.stageKills >= stage.target) {
       state.exitGate.active = true;
       setMission("השער נפתח. הגיעו אליו כדי לעבור למסך הבא.");
-      if (rectsOverlap(state.player, state.exitGate)) {
+      if (anyPlayerOverlaps(state.exitGate)) {
         completeStage(`המעבר מ-${stage.name} הושלם...`);
       }
     } else {
@@ -1052,7 +1158,7 @@ function updateStageObjective() {
     }
   } else if (stage.objective === "activate") {
     for (const generator of state.generators) {
-      if (!generator.active && rectsOverlap(state.player, generator)) {
+      if (!generator.active && anyPlayerOverlaps(generator)) {
         generator.active = true;
         addFloatingText(generator.x - 10, generator.y - 8, "פועל", "#8fff96");
         addExplosion(generator.x + 16, generator.y + 16, "#8fff96", 8);
@@ -1067,7 +1173,7 @@ function updateStageObjective() {
     }
   } else if (stage.objective === "beaconContact") {
     for (const beacon of state.beacons) {
-      if (!beacon.active && rectsOverlap(state.player, beacon)) {
+      if (!beacon.active && anyPlayerOverlaps(beacon)) {
         beacon.active = true;
         addFloatingText(beacon.x - 6, beacon.y - 8, "שידור", "#ffd38d");
         addExplosion(beacon.x + 14, beacon.y + 16, "#ffd38d", 10);
@@ -1081,21 +1187,23 @@ function updateStageObjective() {
         state.survivor.inBunker = true;
         state.zombies = [];
         state.aliens = [];
-        state.player.x = 220;
-        state.player.y = GROUND_Y - state.player.height;
+        state.players.forEach((player, index) => {
+          player.x = 220 + index * 56;
+          player.y = GROUND_Y - player.height;
+        });
         state.survivor.x = 620;
         state.survivor.y = GROUND_Y - state.survivor.height;
       }
 
       setMission("הגעתם לחדר הקשר. דברו עם השורד.");
       setHint("התקרבו לשורד כדי לשמוע מה קרה בעיר.");
-      if (!state.survivor.contacted && rectsOverlap(state.player, state.survivor)) {
+      if (!state.survivor.contacted && anyPlayerOverlaps(state.survivor)) {
         state.survivor.contacted = true;
         state.survivor.recruited = true;
         state.ally = {
           active: true,
           x: 560,
-          y: GROUND_Y - state.player.height,
+          y: GROUND_Y - leadPlayer().height,
           width: 26,
           height: 54,
           facing: -1,
@@ -1817,45 +1925,37 @@ function drawStageScenery() {
   drawPlatforms();
 }
 
-function drawPlayer() {
-  const { player } = state;
-  const flash = state.invulnerableTimer > 0 && Math.floor(state.time * 14) % 2 === 0;
-  drawGroundShadow(player.x + player.width / 2, 20, 0.22);
-  if (!flash) {
-    drawDetailedHuman(
-      player.x,
-      player.y,
-      {
-        skin: "#efc399",
-        skinShadow: "#c89672",
-        neck: "#b78360",
-        hair: "#8f5e3e",
-        shirt: "#6f8397",
-        shirtShadow: "#556675",
-        collar: "#d8d0bf",
-        coat: "#8f786d",
-        coatShadow: "#6c5b53",
-        pants: "#6c6f86",
-        pantsShadow: "#505467",
-        boots: "#6a4c37",
-        arm: player.shootFlash > 0 ? "#efc399" : "#e7bb90",
-        hand: "#efc399",
-        cheek: "rgba(188, 120, 94, 0.45)",
-      },
-      player.facing < 0,
-      player.shootFlash > 0,
-    );
-  }
+function drawPlayers() {
+  for (const player of state.players) {
+    if (player.hp <= 0) {
+      continue;
+    }
 
-  if (player.shootFlash > 0) {
-    const flashX = player.x + (player.facing > 0 ? 26 : -6);
-    const flashY = player.y + 16;
-    ctx.fillStyle = "#f5d7a2";
-    ctx.fillRect(flashX, flashY + 1, 7, 6);
-    ctx.fillStyle = "#e8b774";
-    ctx.fillRect(flashX + (player.facing > 0 ? 5 : -1), flashY + 2, 8, 3);
-    ctx.fillStyle = "rgba(245, 215, 162, 0.35)";
-    ctx.fillRect(flashX + (player.facing > 0 ? 10 : -6), flashY + 1, 6, 5);
+    const flash = state.invulnerableTimer > 0 && Math.floor(state.time * 14) % 2 === 0;
+    drawGroundShadow(player.x + player.width / 2, 20, 0.22);
+    if (!flash) {
+      drawDetailedHuman(
+        player.x,
+        player.y,
+        {
+          ...player.config.palette,
+          arm: player.shootFlash > 0 ? player.config.palette.hand : player.config.arm,
+        },
+        player.facing < 0,
+        player.shootFlash > 0,
+      );
+    }
+
+    if (player.shootFlash > 0) {
+      const flashX = player.x + (player.facing > 0 ? 26 : -6);
+      const flashY = player.y + 16;
+      ctx.fillStyle = "#f5d7a2";
+      ctx.fillRect(flashX, flashY + 1, 7, 6);
+      ctx.fillStyle = "#e8b774";
+      ctx.fillRect(flashX + (player.facing > 0 ? 5 : -1), flashY + 2, 8, 3);
+      ctx.fillStyle = "rgba(245, 215, 162, 0.35)";
+      ctx.fillRect(flashX + (player.facing > 0 ? 10 : -6), flashY + 1, 6, 5);
+    }
   }
 }
 
@@ -2205,22 +2305,39 @@ function drawStageOverlay() {
 }
 
 function drawHeartHud() {
-  const heartSize = 16;
-  const startX = 24;
-  const y = 76;
+  state.players.forEach((player, playerIndex) => {
+    const startX = 24 + playerIndex * 118;
+    const y = 76;
+    ctx.fillStyle = "#f6edcf";
+    ctx.font = '12px "Rubik"';
+    ctx.fillText(player.config.label, startX, y - 8);
+    for (let i = 0; i < 3; i += 1) {
+      const filled = i < player.hp;
+      const x = startX + i * 28;
+      ctx.fillStyle = filled ? player.config.heart : player.config.heartEmpty;
+      ctx.fillRect(x + 4, y, 8, 8);
+      ctx.fillRect(x + 12, y, 8, 8);
+      ctx.fillRect(x + 2, y + 6, 18, 8);
+      ctx.fillRect(x + 4, y + 14, 14, 8);
+      ctx.fillRect(x + 6, y + 22, 10, 6);
+      ctx.fillStyle = filled ? player.config.heartGlow : player.config.heartEmptyGlow;
+      ctx.fillRect(x + 5, y + 2, 4, 3);
+      ctx.fillRect(x + 13, y + 2, 4, 3);
+    }
+  });
+}
 
-  for (let i = 0; i < 3; i += 1) {
-    const filled = i < state.player.hp;
-    const x = startX + i * 28;
-    ctx.fillStyle = filled ? "#d93a4f" : "#4a2329";
-    ctx.fillRect(x + 4, y, 8, 8);
-    ctx.fillRect(x + 12, y, 8, 8);
-    ctx.fillRect(x + 2, y + 6, 18, 8);
-    ctx.fillRect(x + 4, y + 14, 14, 8);
-    ctx.fillRect(x + 6, y + 22, 10, 6);
-    ctx.fillStyle = filled ? "#ff9aa5" : "#6a3a41";
-    ctx.fillRect(x + 5, y + 2, 4, 3);
-    ctx.fillRect(x + 13, y + 2, 4, 3);
+function handlePlayerControls(event) {
+  for (const player of state.players) {
+    if (player.config.jump.includes(event.code)) {
+      jumpPlayer(player);
+    }
+    if (player.config.shoot.includes(event.code)) {
+      if (event.code === "Space") {
+        event.preventDefault();
+      }
+      fireShot(player);
+    }
   }
 }
 
@@ -2275,7 +2392,7 @@ function drawEndOverlay() {
   ctx.direction = "rtl";
   ctx.font = '16px "Rubik"';
   ctx.fillText(
-    state.victory ? "הילד עצר את הפלישה והחזיר את הלילה." : "האפוקליפסה ניצחה הפעם.",
+    state.victory ? "השורדים עצרו את הפלישה והחזירו את הלילה." : "האפוקליפסה ניצחה הפעם.",
     WIDTH / 2,
     HEIGHT / 2 + 16,
   );
@@ -2292,7 +2409,7 @@ function update(dt) {
   }
 
   if (!state.gameOver && !state.victory && state.transitionTimer <= 0) {
-    updatePlayer(dt);
+    state.players.forEach((player) => updatePlayer(player, dt));
     updateZombies(dt);
     updateAliens(dt);
     updateAlly(dt);
@@ -2316,7 +2433,7 @@ function render() {
     drawZombies();
     drawAliens();
     drawAlly();
-    drawPlayer();
+    drawPlayers();
     drawShots();
     drawEffects();
     drawStageOverlay();
@@ -2350,14 +2467,7 @@ window.addEventListener("keydown", (event) => {
     }
   }
 
-  if (event.key === "ArrowUp" || event.code === "KeyW") {
-    jumpPlayer();
-  }
-
-  if (event.key === " " || event.code === "Space") {
-    event.preventDefault();
-    fireShot();
-  }
+  handlePlayerControls(event);
 
   if (event.key === "ר" || event.key === "r" || event.key === "R" || event.code === "KeyR") {
     resetGame();
@@ -2384,7 +2494,7 @@ canvas.addEventListener("pointerdown", () => {
 
 canvas.addEventListener("contextmenu", (event) => {
   event.preventDefault();
-  fireShot();
+  fireShot(state.players[0]);
 });
 
 resetGame();

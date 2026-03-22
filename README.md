@@ -1,12 +1,12 @@
 # Arad Zombies
 
-Retro browser game set in Arad: a lone kid survives an alien apocalypse, fights zombie waves across local landmarks, and pushes toward the final showdown.
+Retro browser game set in Arad: two survivors fight zombie waves across local landmarks and push toward the final showdown.
 
 ## Play
 
-- Move with `WASD` or arrow keys
-- Jump with `Space`, `W`, or `ArrowUp`
-- Shoot with `Space` or right click
+- Player 1: move with `WASD`, jump with `W`, shoot with `F` or `Space`
+- Player 2: move with arrow keys, jump with `ArrowUp`, shoot with `/` or `Right Shift`
+- Right click also fires for player 1
 - Restart with `R`
 
 ## Run locally
