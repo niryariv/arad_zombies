@@ -1021,10 +1021,13 @@ function triggerVictory() {
   state.transitionText = "";
   state.zombies = [];
   state.aliens = [];
+  state.enemyShots = [];
   addExplosion(state.core ? state.core.x + 48 : WIDTH / 2, 180, "#ffb347", 18);
+  addExplosion(WIDTH / 2 - 120, 140, "#8fff96", 16);
+  addExplosion(WIDTH / 2 + 120, 140, "#7ffff0", 16);
   setStatus("ניצחון");
-  setMission("הליבה הושמדה. הפלישה קרסה.");
-  setHint("ניצחתם. לחצו ר כדי לשחק שוב.");
+  setMission("פאב המוזה טוהר. ערד חזרה לחיים.");
+  setHint("ניצחתם במשחק. לחצו ר כדי להתחיל שוב.");
   syncHud();
 }
 
@@ -1485,6 +1488,8 @@ function updateTransitions(dt) {
 
   if (state.stageIndex < stageDefs.length - 1) {
     configureStage(state.stageIndex + 1);
+  } else {
+    triggerVictory();
   }
 }
 
@@ -2769,21 +2774,40 @@ function drawEndOverlay() {
     return;
   }
 
-  ctx.fillStyle = "rgba(0, 0, 0, 0.58)";
+  ctx.fillStyle = state.victory ? "rgba(16, 28, 24, 0.7)" : "rgba(0, 0, 0, 0.58)";
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
-  ctx.fillStyle = "#f6edcf";
   ctx.textAlign = "center";
-  ctx.font = '30px "Rubik"';
-  ctx.fillText(state.victory ? "ניצחתם" : "המשחק נגמר", WIDTH / 2, HEIGHT / 2 - 28);
-  ctx.direction = "rtl";
-  ctx.font = '16px "Rubik"';
-  ctx.fillText(
-    state.victory ? "השורדים עצרו את הפלישה והחזירו את הלילה." : "האפוקליפסה ניצחה הפעם.",
-    WIDTH / 2,
-    HEIGHT / 2 + 16,
-  );
-  ctx.direction = "ltr";
-  ctx.fillText("לחצו ר", WIDTH / 2, HEIGHT / 2 + 58);
+
+  if (state.victory) {
+    ctx.fillStyle = "rgba(143, 255, 150, 0.12)";
+    ctx.fillRect(170, 128, 620, 220);
+    ctx.strokeStyle = "#8fff96";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(170, 128, 620, 220);
+    ctx.fillStyle = "#f6edcf";
+    ctx.font = '700 34px "Rubik"';
+    ctx.fillText("ניצחתם במשחק", WIDTH / 2, HEIGHT / 2 - 54);
+    ctx.fillStyle = "#8fff96";
+    ctx.font = '700 20px "Rubik"';
+    ctx.fillText("פאב המוזה שוחרר", WIDTH / 2, HEIGHT / 2 - 12);
+    ctx.direction = "rtl";
+    ctx.fillStyle = "#f6edcf";
+    ctx.font = '18px "Rubik"';
+    ctx.fillText("השורדים ניקו את המסך האחרון, החזירו את ערד לעצמה, וסיימו את המסע.", WIDTH / 2, HEIGHT / 2 + 28);
+    ctx.direction = "ltr";
+    ctx.font = '16px "Rubik"';
+    ctx.fillText("לחצו ר כדי לשחק שוב", WIDTH / 2, HEIGHT / 2 + 78);
+  } else {
+    ctx.fillStyle = "#f6edcf";
+    ctx.font = '30px "Rubik"';
+    ctx.fillText("המשחק נגמר", WIDTH / 2, HEIGHT / 2 - 28);
+    ctx.direction = "rtl";
+    ctx.font = '16px "Rubik"';
+    ctx.fillText("האפוקליפסה ניצחה הפעם.", WIDTH / 2, HEIGHT / 2 + 16);
+    ctx.direction = "ltr";
+    ctx.fillText("לחצו ר", WIDTH / 2, HEIGHT / 2 + 58);
+  }
+
   ctx.textAlign = "start";
 }
 
