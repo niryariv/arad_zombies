@@ -255,6 +255,7 @@ const stageDefs = [
 
 const state = {
   players: [],
+  playerCount: 1,
   zombies: [],
   aliens: [],
   shots: [],
@@ -332,10 +333,9 @@ function createBunkerFriends() {
 }
 
 function resetGame() {
-  state.players = [
-    createPlayerState(PLAYER_CONFIGS[0], 120),
-    createPlayerState(PLAYER_CONFIGS[1], 180),
-  ];
+  state.players = PLAYER_CONFIGS.slice(0, state.playerCount).map((config, index) =>
+    createPlayerState(config, 120 + index * 60),
+  );
   state.zombies = [];
   state.aliens = [];
   state.shots = [];
@@ -375,14 +375,14 @@ function resetGame() {
   setStatus("פתיחה");
   setHint(
     state.immortal
-      ? "מצב אלמוות הופעל מהקישור. לחצו אנטר או לחצו על המסך כדי להתחיל."
-      : "לחצו אנטר או לחצו על המסך כדי להתחיל את סצנת הפתיחה.",
+      ? "בחרו 1 או 2 שחקנים, ואז לחצו אנטר כדי להתחיל. מצב אלמוות פעיל."
+      : "בחרו 1 או 2 שחקנים, ואז לחצו אנטר או לחצו על המסך כדי להתחיל.",
   );
   syncHud();
 }
 
 function syncHud() {
-  healthEl.textContent = "לבבות: 1 אדום, 2 כחול";
+  healthEl.textContent = state.playerCount === 1 ? "לבבות" : "לבבות: 1 אדום, 2 כחול";
   waveEl.textContent = state.stageIndex >= 0 ? `${state.stageIndex + 1}/${stageDefs.length}` : `0/${stageDefs.length}`;
   scoreEl.textContent = String(state.score);
   missionEl.textContent = state.mission;
@@ -877,6 +877,17 @@ function startIntro() {
   setHint("לחצו אנטר כדי לדלג ישירות לשלב הראשון.");
   setMission("צפו בפתיחה או דלגו אל המשחק.");
   syncHud();
+}
+
+function setPlayerCount(count) {
+  state.playerCount = count;
+  resetGame();
+  setStatus(count === 1 ? "שחקן אחד" : "שני שחקנים");
+  setHint(
+    count === 1
+      ? "נבחר מצב של שחקן אחד. לחצו אנטר כדי להתחיל."
+      : "נבחר מצב של שני שחקנים. לחצו אנטר כדי להתחיל.",
+  );
 }
 
 function completeStage(text) {
@@ -2489,7 +2500,15 @@ function drawIntroScene() {
   if (state.introTime <= 0) {
     ctx.textAlign = "center";
     ctx.font = '18px "Rubik"';
-    ctx.fillText("לחצו אנטר", WIDTH / 2, HEIGHT / 2 + 120);
+    ctx.fillText("בחרו מצב משחק", WIDTH / 2, HEIGHT / 2 + 88);
+    ctx.font = '16px "Rubik"';
+    ctx.fillStyle = state.playerCount === 1 ? "#ffd38d" : "#f6edcf";
+    ctx.fillText("1 - שחקן אחד", WIDTH / 2, HEIGHT / 2 + 120);
+    ctx.fillStyle = state.playerCount === 2 ? "#ffd38d" : "#f6edcf";
+    ctx.fillText("2 - שני שחקנים", WIDTH / 2, HEIGHT / 2 + 148);
+    ctx.fillStyle = "#f6edcf";
+    ctx.font = '14px "Rubik"';
+    ctx.fillText("אנטר להתחלה", WIDTH / 2, HEIGHT / 2 + 182);
     ctx.textAlign = "start";
   }
 }
@@ -2696,6 +2715,17 @@ function frame(now) {
 
 window.addEventListener("keydown", (event) => {
   handleCheatCode(event.code);
+
+  if (state.mode === "intro" && state.introTime <= 0) {
+    if (event.key === "1" || event.code === "Digit1") {
+      setPlayerCount(1);
+      return;
+    }
+    if (event.key === "2" || event.code === "Digit2") {
+      setPlayerCount(2);
+      return;
+    }
+  }
 
   if (event.key === "Enter" || event.code === "Enter") {
     if (state.mode === "intro" && state.introTime <= 0) {
