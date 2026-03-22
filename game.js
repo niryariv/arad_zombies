@@ -1624,42 +1624,41 @@ function getWalkCycle(speed, variant = "human") {
       torsoLean: 0,
       shoulderDrop: 0,
       hipShift: 0,
+      frontLegX: 0,
+      backLegX: 0,
+      frontFootX: 0,
+      backFootX: 0,
+      frontArmX: 0,
+      backArmX: 0,
     };
   }
 
-  const phaseSpeed =
-    variant === "player" ? 0.052 :
-    variant === "ally" ? 0.048 :
-    variant === "survivor" ? 0.042 :
-    variant === "zombie" ? 0.036 :
-    0.05;
-  const legSwing =
-    variant === "player" ? 3.2 :
-    variant === "ally" ? 2.8 :
-    variant === "survivor" ? 2.1 :
-    variant === "zombie" ? 4.2 :
-    3.6;
-  const armSwing =
-    variant === "player" ? 2.2 :
-    variant === "ally" ? 2.1 :
-    variant === "survivor" ? 1.6 :
-    variant === "zombie" ? 3.4 :
-    2.6;
-  const bobAmount = variant === "zombie" ? 1.2 : 1.8;
-  const phase = state.time * (80 + Math.abs(speed) * 0.6) * phaseSpeed;
-  const wave = Math.sin(phase);
-  const offsetWave = Math.sin(phase + Math.PI / 2);
+  const isZombie = variant === "zombie";
+  const frames = isZombie
+    ? [
+        { bodyBob: 0, torsoLean: -0.2, shoulderDrop: 0, hipShift: -0.5, frontLeg: -3, backLeg: 2, frontLegX: 2, backLegX: -1, frontFootX: 3, backFootX: -1, frontArm: 2, backArm: -2, frontArmX: 1, backArmX: -1 },
+        { bodyBob: 1, torsoLean: -0.08, shoulderDrop: 1, hipShift: 0, frontLeg: -1, backLeg: 0, frontLegX: 1, backLegX: 0, frontFootX: 1, backFootX: 0, frontArm: 1, backArm: -1, frontArmX: 0, backArmX: 0 },
+        { bodyBob: 0, torsoLean: 0.16, shoulderDrop: 0, hipShift: 0.5, frontLeg: 2, backLeg: -3, frontLegX: -1, backLegX: 2, frontFootX: -1, backFootX: 3, frontArm: -2, backArm: 2, frontArmX: -1, backArmX: 1 },
+        { bodyBob: 1, torsoLean: 0.04, shoulderDrop: -1, hipShift: 0, frontLeg: 0, backLeg: -1, frontLegX: 0, backLegX: 1, frontFootX: 0, backFootX: 1, frontArm: -1, backArm: 1, frontArmX: 0, backArmX: 0 },
+      ]
+    : [
+        { bodyBob: 0, torsoLean: -0.1, shoulderDrop: -1, hipShift: -0.4, frontLeg: -2, backLeg: 2, frontLegX: 1.4, backLegX: -1, frontFootX: 2.2, backFootX: -1, frontArm: 2, backArm: -2, frontArmX: 1, backArmX: -1 },
+        { bodyBob: 1, torsoLean: 0.02, shoulderDrop: 0, hipShift: 0, frontLeg: 0, backLeg: 1, frontLegX: 0.6, backLegX: -0.2, frontFootX: 0.8, backFootX: 0, frontArm: 1, backArm: -1, frontArmX: 0.4, backArmX: -0.4 },
+        { bodyBob: 0, torsoLean: 0.12, shoulderDrop: 1, hipShift: 0.4, frontLeg: 2, backLeg: -2, frontLegX: -1, backLegX: 1.4, frontFootX: -1, backFootX: 2.2, frontArm: -2, backArm: 2, frontArmX: -1, backArmX: 1 },
+        { bodyBob: 1, torsoLean: 0.02, shoulderDrop: 0, hipShift: 0, frontLeg: 1, backLeg: 0, frontLegX: -0.2, backLegX: 0.6, frontFootX: 0, backFootX: 0.8, frontArm: -1, backArm: 1, frontArmX: -0.4, backArmX: 0.4 },
+      ];
+  const cadenceBase =
+    variant === "player" ? 10 :
+    variant === "ally" ? 9 :
+    variant === "survivor" ? 8 :
+    variant === "zombie" ? 7 :
+    8;
+  const cadence = cadenceBase + Math.min(4, Math.abs(speed) / 85);
+  const frame = frames[Math.floor(state.time * cadence) % frames.length];
 
   return {
     moving: true,
-    bodyBob: Math.sin(phase * 2) * bobAmount,
-    frontLeg: wave * legSwing,
-    backLeg: -wave * legSwing,
-    frontArm: -wave * armSwing,
-    backArm: wave * armSwing * 0.8,
-    torsoLean: wave * (variant === "zombie" ? 0.35 : 0.22),
-    shoulderDrop: offsetWave * (variant === "zombie" ? 1.4 : 0.9),
-    hipShift: wave * (variant === "zombie" ? 1.1 : 0.75),
+    ...frame,
   };
 }
 
@@ -1692,28 +1691,28 @@ function drawDetailedHuman(x, y, palette, mirrored = false, shooting = false, wa
   ctx.fillStyle = palette.collar ?? "#d8d2c3";
   ctx.fillRect(10, 18 + walkCycle.shoulderDrop * 0.12, 6, 2);
   ctx.fillStyle = palette.coat ?? "#8a756c";
-  ctx.fillRect(4, 20 + walkCycle.backArm * 0.15, 3, 24);
-  ctx.fillRect(19, 20 + walkCycle.frontArm * 0.15, 3, 24);
+  ctx.fillRect(4 + walkCycle.backArmX * 0.2, 20 + walkCycle.backArm * 0.15, 3, 24);
+  ctx.fillRect(19 + walkCycle.frontArmX * 0.2, 20 + walkCycle.frontArm * 0.15, 3, 24);
   ctx.fillRect(7 + walkCycle.hipShift * 0.18, 31, 12, 12);
   ctx.fillStyle = palette.arm;
-  ctx.fillRect(3, 19 + walkCycle.backArm + shootPose * 0.8, 3, 11);
+  ctx.fillRect(3 + walkCycle.backArmX, 19 + walkCycle.backArm + shootPose * 0.8, 3, 11);
   if (shooting) {
     ctx.fillRect(18, 17 - shootPose * 1.1, 8, 3);
     ctx.fillRect(24, 16 - shootPose * 1.1, 5, 4);
     ctx.fillStyle = palette.hand ?? palette.arm;
     ctx.fillRect(28, 16 - shootPose, 2, 3);
   } else {
-    ctx.fillRect(20, 19 + walkCycle.frontArm, 3, 11);
+    ctx.fillRect(20 + walkCycle.frontArmX, 19 + walkCycle.frontArm, 3, 11);
   }
   ctx.fillStyle = palette.pantsShadow;
-  ctx.fillRect(8 + walkCycle.hipShift * 0.2, 33 + walkCycle.frontLeg, 4, 15);
-  ctx.fillRect(14 - walkCycle.hipShift * 0.2, 33 + walkCycle.backLeg, 4, 15);
+  ctx.fillRect(8 + walkCycle.hipShift * 0.2 + walkCycle.frontLegX, 33 + walkCycle.frontLeg, 4, 15);
+  ctx.fillRect(14 - walkCycle.hipShift * 0.2 + walkCycle.backLegX, 33 + walkCycle.backLeg, 4, 15);
   ctx.fillStyle = palette.pants;
-  ctx.fillRect(9 + walkCycle.hipShift * 0.15, 34 + walkCycle.frontLeg, 2, 12);
-  ctx.fillRect(15 - walkCycle.hipShift * 0.15, 34 + walkCycle.backLeg, 2, 12);
+  ctx.fillRect(9 + walkCycle.hipShift * 0.15 + walkCycle.frontLegX, 34 + walkCycle.frontLeg, 2, 12);
+  ctx.fillRect(15 - walkCycle.hipShift * 0.15 + walkCycle.backLegX, 34 + walkCycle.backLeg, 2, 12);
   ctx.fillStyle = palette.boots;
-  ctx.fillRect(7 + walkCycle.hipShift * 0.1, 48 + walkCycle.frontLeg, 5, 4);
-  ctx.fillRect(14 - walkCycle.hipShift * 0.1, 48 + walkCycle.backLeg, 5, 4);
+  ctx.fillRect(7 + walkCycle.hipShift * 0.1 + walkCycle.frontFootX, 48 + walkCycle.frontLeg, 5, 4);
+  ctx.fillRect(14 - walkCycle.hipShift * 0.1 + walkCycle.backFootX, 48 + walkCycle.backLeg, 5, 4);
   ctx.fillStyle = "#f7efcf";
   ctx.fillRect(10, 9, 1, 1);
   ctx.fillRect(15, 9, 1, 1);
@@ -1742,14 +1741,14 @@ function drawZombieFigure(x, y, palette, mirrored = false, walkCycle = getWalkCy
   ctx.fillStyle = palette.shirt;
   ctx.fillRect(4, 16, 16, 13);
   ctx.fillStyle = palette.pants;
-  ctx.fillRect(5, 29 + walkCycle.frontLeg, 6, 13);
-  ctx.fillRect(13, 29 + walkCycle.backLeg, 6, 13);
+  ctx.fillRect(5 + walkCycle.frontLegX, 29 + walkCycle.frontLeg, 6, 13);
+  ctx.fillRect(13 + walkCycle.backLegX, 29 + walkCycle.backLeg, 6, 13);
   ctx.fillStyle = palette.arm;
-  ctx.fillRect(1, 17 + walkCycle.frontArm, 4, 10);
-  ctx.fillRect(19, 18 + walkCycle.backArm, 4, 10);
+  ctx.fillRect(1 + walkCycle.frontArmX, 17 + walkCycle.frontArm, 4, 10);
+  ctx.fillRect(19 + walkCycle.backArmX, 18 + walkCycle.backArm, 4, 10);
   ctx.fillStyle = palette.boots;
-  ctx.fillRect(4, 42 + walkCycle.frontLeg, 7, 6);
-  ctx.fillRect(13, 42 + walkCycle.backLeg, 7, 6);
+  ctx.fillRect(4 + walkCycle.frontFootX, 42 + walkCycle.frontLeg, 7, 6);
+  ctx.fillRect(13 + walkCycle.backFootX, 42 + walkCycle.backLeg, 7, 6);
   ctx.fillStyle = "#e6ffb8";
   ctx.fillRect(8, 8, 2, 2);
   ctx.fillRect(14, 8, 2, 2);
