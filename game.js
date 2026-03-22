@@ -139,14 +139,14 @@ const stageDefs = [
   {
     name: "מרחב ד-ו",
     status: "חיפוש",
-    hint: "מצאו 3 עמדות נשק בתוך המרחב ההרוס והחזיקו מול הזומבים.",
+    hint: "מצאו 3 עמדות נשק בתוך המרחב ההרוס והפעילו אותן כדי לצאת.",
     objective: "activate",
     target: 3,
     scenery: "dvClass",
-    enemyName: "זומבים משוטטים",
+    enemyName: "",
     weaponName: "",
     weaponType: "",
-    zombies: 6,
+    zombies: 0,
     aliens: 0,
   },
   {
