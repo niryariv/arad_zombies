@@ -109,174 +109,147 @@ const introSteps = [
 
 const stageDefs = [
   {
-    name: "חצר קדם בערד",
+    name: "גן",
     status: "בריחה",
-    hint: "חסלו 5 זומבים ואז ברחו לשער המילוט.",
+    hint: "חסלו 5 בובות זומבי שמטיחות קוביות בין הצעצועים.",
     objective: "killGate",
     target: 5,
-    scenery: "kedemYard",
-    zombies: 5,
-    aliens: 0,
-  },
-  {
-    name: "מגרש הכדורגל של קדם",
-    status: "תאורה",
-    hint: "הפעילו 3 עמודי תאורה כדי לראות את הזומבים רצים במגרש.",
-    objective: "activate",
-    target: 3,
-    scenery: "football",
-    zombies: 4,
-    aliens: 0,
-  },
-  {
-    name: "הגן",
-    status: "טיהור",
-    hint: "השמידו 3 קינים בין המגלשות והנדנדות.",
-    objective: "destroy",
-    target: 3,
     scenery: "kindergarten",
+    enemyName: "בובות זומבי",
+    weaponName: "קוביות",
+    weaponType: "blocks",
     zombies: 5,
     aliens: 0,
   },
   {
     name: "מרחב א-ג",
     status: "פינוי",
-    hint: "חסלו 6 זומבים והגיעו לדלת היציאה.",
+    hint: "חסלו 6 חונכים זומבי שזורקים סרגלים מול הלוח.",
     objective: "killGate",
     target: 6,
     scenery: "agClass",
+    enemyName: "חונכים זומבי",
+    weaponName: "סרגלים",
+    weaponType: "rulers",
     zombies: 6,
     aliens: 0,
   },
   {
     name: "מרחב ד-ו",
-    status: "נעילה",
-    hint: "הפעילו 3 לוחות כריזה כדי לאטום את האזור.",
+    status: "חיפוש",
+    hint: "מצאו 3 עמדות נשק בתוך המרחב ההרוס והחזיקו מול הזומבים.",
     objective: "activate",
     target: 3,
     scenery: "dvClass",
+    enemyName: "זומבים משוטטים",
+    weaponName: "",
+    weaponType: "",
     zombies: 6,
     aliens: 0,
   },
   {
-    name: "התיכון",
-    status: "קשר",
-    hint: "הדליקו 2 אנטנות, צרו קשר עם שורד, והגיעו אליו.",
-    objective: "beaconContact",
-    target: 2,
+    name: "תיכון",
+    status: "הדיפה",
+    hint: "שרדו מול שחקני כדורסל שזורקים כדורים במתחם הגדול והמלוכלך.",
+    objective: "killGate",
+    target: 6,
     scenery: "highSchool",
-    zombies: 5,
-    aliens: 1,
+    enemyName: "שחקני כדורסל",
+    weaponName: "כדורי כדורסל",
+    weaponType: "basketballs",
+    zombies: 6,
+    aliens: 0,
   },
   {
-    name: "החצר",
-    status: "טיהור",
-    hint: "השמידו 3 קיני זוהמה ליד הסככה והעצים.",
+    name: "מגרש",
+    status: "ספורט",
+    hint: "חסלו 7 שחקני כדורגל זומבים שבועטים עליכם כדורים במגרש האפור.",
+    objective: "killGate",
+    target: 7,
+    scenery: "football",
+    enemyName: "שחקני כדורגל",
+    weaponName: "כדורי כדורגל",
+    weaponType: "footballs",
+    zombies: 7,
+    aliens: 0,
+  },
+  {
+    name: "ספריה",
+    status: "שקט",
+    hint: "הפילו 5 ספרנים זומבים שזורקים ספרים מבין המדפים.",
+    objective: "killGate",
+    target: 5,
+    scenery: "library",
+    enemyName: "ספרנים זומבים",
+    weaponName: "ספרים",
+    weaponType: "books",
+    zombies: 5,
+    aliens: 0,
+  },
+  {
+    name: "בריכת שחייה",
+    status: "החלקה",
+    hint: "חסלו 5 שחיינים זומבים שמשפריצים גלי מים מהבריכה.",
+    objective: "killGate",
+    target: 5,
+    scenery: "pool",
+    enemyName: "שחיינים",
+    weaponName: "מים",
+    weaponType: "water",
+    zombies: 5,
+    aliens: 0,
+  },
+  {
+    name: "רובוטיקה",
+    status: "קצר",
+    hint: "השמידו 3 רובוטים בתוך המעבדה לפני שהם משתלטים על כל התחנות.",
     objective: "destroy",
     target: 3,
-    scenery: "courtyard",
+    scenery: "robotics",
+    enemyName: "רובוטים",
+    weaponName: "",
+    weaponType: "",
     zombies: 6,
-    aliens: 1,
+    aliens: 0,
   },
   {
-    name: "המתנ\"ס",
-    status: "חילוץ",
-    hint: "הפעילו 3 ארונות חילוץ כדי לפתוח את אגף המקלטים.",
-    objective: "activate",
-    target: 3,
-    scenery: "matnas",
-    zombies: 6,
-    aliens: 1,
+    name: "כפרוצקה",
+    status: "מטבח",
+    hint: "שרדו מול מלצרים ושפים שזורקים פיצות ומערוכים ברחבי הפיצרייה.",
+    objective: "killGate",
+    target: 7,
+    scenery: "pizza",
+    enemyName: "מלצרים ושפים",
+    weaponName: "פיצות ומערוכים",
+    weaponType: "pizza",
+    zombies: 7,
+    aliens: 0,
   },
   {
-    name: "תפוח פיס",
-    status: "ניקוי רשת",
-    hint: "השמידו 3 קני פלישה בין המחשבים והמסכים.",
-    objective: "destroy",
-    target: 3,
-    scenery: "pis",
-    zombies: 5,
-    aliens: 2,
-  },
-  {
-    name: "מגרש הספורט",
-    status: "הסתערות",
-    hint: "חסלו 7 זומבים והגיעו לשער.",
+    name: "מגרש ספורט",
+    status: "עימות",
+    hint: "חסלו 7 ספורטאים שמסתערים במכות בתוך מגרש הספורט.",
     objective: "killGate",
     target: 7,
     scenery: "sportsField",
+    enemyName: "ספורטאים",
+    weaponName: "מכות",
+    weaponType: "",
     zombies: 6,
-    aliens: 1,
-  },
-  {
-    name: "הקניון",
-    status: "טיהור",
-    hint: "השמידו 3 קיני זוהמה בין החנויות.",
-    objective: "destroy",
-    target: 3,
-    scenery: "mall",
-    zombies: 6,
-    aliens: 2,
-  },
-  {
-    name: "הספריה",
-    status: "שחזור מידע",
-    hint: "הפעילו 3 עמדות ארכיון כדי לאתר את מקור הפלישה.",
-    objective: "activate",
-    target: 3,
-    scenery: "library",
-    zombies: 5,
-    aliens: 1,
-  },
-  {
-    name: "חוג רובוטיקה במתנ\"ס",
-    status: "הפעלה",
-    hint: "הפעילו 3 ספסלי רובוטיקה כדי לייצב את עוזר הקרב.",
-    objective: "activate",
-    target: 3,
-    scenery: "robotics",
-    zombies: 6,
-    aliens: 2,
-  },
-  {
-    name: "מרכז קניות צים",
-    status: "פינוי",
-    hint: "חסלו 8 זומבים בין החנויות והגיעו ליציאה.",
-    objective: "killGate",
-    target: 8,
-    scenery: "zim",
-    zombies: 7,
-    aliens: 1,
-  },
-  {
-    name: "שופרסל",
-    status: "אבטחה",
-    hint: "השמידו 3 קינים בין המדפים והמקררים.",
-    objective: "destroy",
-    target: 3,
-    scenery: "supermarket",
-    zombies: 6,
-    aliens: 2,
+    aliens: 0,
   },
   {
     name: "פאב המוזה",
     status: "הדיפה",
-    hint: "חסלו 8 זומבים סביב הבמה ופתחו את הדרך החוצה.",
+    hint: "שרדו מול מלצרים זומבים שמנסים לאכול אתכם בתוך הבר המלוכלך.",
     objective: "killGate",
     target: 8,
     scenery: "pub",
+    enemyName: "מלצרים",
+    weaponName: "נשיכות",
+    weaponType: "",
     zombies: 7,
-    aliens: 2,
-  },
-  {
-    name: "פיצה כפרוצ׳קה",
-    status: "קרב אחרון",
-    hint: "פוצצו את ליבת החייזרים שנבנתה בתוך הטאבון.",
-    objective: "boss",
-    target: 16,
-    scenery: "pizza",
-    zombies: 6,
-    aliens: 3,
+    aliens: 0,
   },
 ];
 
@@ -285,6 +258,7 @@ const state = {
   zombies: [],
   aliens: [],
   shots: [],
+  enemyShots: [],
   particles: [],
   floatingTexts: [],
   bunkerFriends: [],
@@ -300,6 +274,7 @@ const state = {
   stageKills: 0,
   spawnTimer: 0,
   alienSpawnTimer: 0,
+  enemyAttackTimer: 0,
   invulnerableTimer: 0,
   shotCooldown: 0,
   mission: "",
@@ -364,6 +339,7 @@ function resetGame() {
   state.zombies = [];
   state.aliens = [];
   state.shots = [];
+  state.enemyShots = [];
   state.particles = [];
   state.floatingTexts = [];
   state.bunkerFriends = createBunkerFriends();
@@ -379,6 +355,7 @@ function resetGame() {
   state.stageKills = 0;
   state.spawnTimer = 0;
   state.alienSpawnTimer = 0;
+  state.enemyAttackTimer = 0;
   state.invulnerableTimer = 0;
   state.shotCooldown = 0;
   state.mission = "התחילו את סצנת הפתיחה";
@@ -571,10 +548,12 @@ function configureStage(index) {
   state.zombies = [];
   state.aliens = [];
   state.shots = [];
+  state.enemyShots = [];
   state.particles = [];
   state.floatingTexts = [];
   state.spawnTimer = 0.6;
   state.alienSpawnTimer = 1.4;
+  state.enemyAttackTimer = 0.9;
   state.transitionTimer = 0;
   state.transitionText = "";
   state.exitGate = null;
@@ -626,7 +605,7 @@ function configureStage(index) {
   }
 
   setStatus(stage.status);
-  setHint(stage.hint);
+  setHint(stage.weaponName ? `${stage.hint} הם זורקים: ${stage.weaponName}.` : stage.hint);
   state.ally = existingAlly?.active
     ? { ...existingAlly, x: leadPlayer().x + 54, y: leadPlayer().y, shootCooldown: 0 }
     : null;
@@ -678,6 +657,23 @@ function spawnAlienDrone() {
   });
 }
 
+function spawnEnemyShot(from, to, weaponType) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const distance = Math.max(1, Math.hypot(dx, dy));
+  const speed = weaponType === "water" ? 260 : 300;
+  state.enemyShots.push({
+    weaponType,
+    x: from.x,
+    y: from.y,
+    vx: (dx / distance) * speed,
+    vy: (dy / distance) * speed,
+    width: weaponType === "rulers" ? 18 : 14,
+    height: weaponType === "rulers" ? 4 : 14,
+    ttl: 2.2,
+  });
+}
+
 function seedStageEnemies() {
   const stage = currentStageDef();
   const spawnPoints = getSpawnPoints(state.stageIndex);
@@ -687,6 +683,57 @@ function seedStageEnemies() {
   while (state.aliens.length < stage.aliens) {
     spawnAlienDrone();
   }
+}
+
+function updateEnemyShots(dt) {
+  for (const shot of state.enemyShots) {
+    shot.x += shot.vx * dt;
+    shot.y += shot.vy * dt;
+    shot.ttl -= dt;
+
+    for (const player of activePlayers()) {
+      if (rectsOverlap(shot, player)) {
+        shot.ttl = 0;
+        damagePlayer(player);
+        addExplosion(shot.x, shot.y, "#ffd38d", 6);
+        break;
+      }
+    }
+  }
+
+  state.enemyShots = state.enemyShots.filter(
+    (shot) => shot.ttl > 0 && shot.x > -40 && shot.x < WIDTH + 40 && shot.y > -40 && shot.y < HEIGHT + 40,
+  );
+}
+
+function updateEnemyAttacks(dt) {
+  const stage = currentStageDef();
+  if (!stage?.weaponType || activePlayers().length === 0) {
+    return;
+  }
+
+  state.enemyAttackTimer -= dt;
+  if (state.enemyAttackTimer > 0 || state.zombies.length === 0) {
+    return;
+  }
+
+  const attacker = state.zombies[Math.floor(Math.random() * state.zombies.length)];
+  let target = activePlayers()[0];
+  let nearestDistance = Infinity;
+  for (const player of activePlayers()) {
+    const distance = Math.hypot(player.x - attacker.x, player.y - attacker.y);
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      target = player;
+    }
+  }
+
+  spawnEnemyShot(
+    { x: attacker.x + attacker.width / 2, y: attacker.y + 16 },
+    { x: target.x + target.width / 2, y: target.y + 18 },
+    stage.weaponType,
+  );
+  state.enemyAttackTimer = 1.1 + Math.random() * 0.8;
 }
 
 function fireShot(player) {
@@ -1782,6 +1829,12 @@ function drawStageScenery() {
     ctx.fillRect(720, 192, 18, 98);
     ctx.fillRect(780, 192, 18, 98);
     ctx.fillRect(720, 192, 78, 14);
+    ctx.fillStyle = "#f2d45f";
+    ctx.fillRect(372, 280, 18, 18);
+    ctx.fillStyle = "#e3695d";
+    ctx.fillRect(398, 286, 14, 14);
+    ctx.fillStyle = "#76b86f";
+    ctx.fillRect(430, 276, 20, 20);
     drawVenueSign(118, 136, 138, "הגן");
   } else if (stage.scenery === "agClass" || stage.scenery === "dvClass") {
     ctx.fillStyle = "#7c675c";
@@ -1795,6 +1848,18 @@ function drawStageScenery() {
     ctx.fillRect(658, 236, 130, 24);
     ctx.fillStyle = "#5d7f91";
     ctx.fillRect(692, 176, 110, 36);
+    if (stage.scenery === "agClass") {
+      ctx.fillStyle = "#35544a";
+      ctx.fillRect(146, 176, 180, 72);
+      ctx.fillStyle = "#e9d79d";
+      ctx.fillRect(338, 186, 10, 80);
+    } else {
+      ctx.fillStyle = "#534440";
+      ctx.fillRect(152, 188, 96, 72);
+      ctx.fillRect(662, 188, 96, 72);
+      ctx.fillStyle = "#7a5a49";
+      ctx.fillRect(330, 278, 300, 34);
+    }
     drawVenueSign(118, 128, 180, stage.name);
   } else if (stage.scenery === "highSchool") {
     ctx.fillStyle = "#6c5756";
@@ -1804,6 +1869,10 @@ function drawStageScenery() {
     ctx.fillStyle = "#b8a38d";
     ctx.fillRect(106, 182, 112, 116);
     ctx.fillRect(744, 182, 112, 116);
+    ctx.fillStyle = "#9d6d46";
+    ctx.beginPath();
+    ctx.arc(486, 232, 58, 0, Math.PI * 2);
+    ctx.fill();
     drawVenueSign(360, 126, 220, "התיכון");
   } else if (stage.scenery === "courtyard") {
     ctx.fillStyle = "#8a705a";
@@ -1862,8 +1931,25 @@ function drawStageScenery() {
       ctx.fillRect(116 + i * 150, 194, 74, 10);
       ctx.fillRect(116 + i * 150, 214, 74, 10);
       ctx.fillRect(116 + i * 150, 234, 74, 10);
+      ctx.fillStyle = "#9d6f8d";
+      ctx.fillRect(120 + i * 150, 250, 20, 8);
+      ctx.fillStyle = "#6e9f8b";
+      ctx.fillRect(146 + i * 150, 250, 18, 8);
     }
     drawVenueSign(366, 130, 188, "הספריה");
+  } else if (stage.scenery === "pool") {
+    ctx.fillStyle = "#c9b08f";
+    ctx.fillRect(60, 150, 840, 190);
+    ctx.fillStyle = "#6ab8d6";
+    ctx.fillRect(160, 190, 520, 110);
+    ctx.fillStyle = "rgba(220, 246, 255, 0.35)";
+    ctx.fillRect(172, 202, 496, 10);
+    ctx.fillStyle = "#8b776a";
+    ctx.fillRect(700, 172, 110, 14);
+    ctx.fillRect(716, 172, 10, 110);
+    ctx.fillRect(784, 172, 10, 110);
+    ctx.fillRect(708, 270, 96, 12);
+    drawVenueSign(374, 138, 212, "בריכת שחייה");
   } else if (stage.scenery === "supermarket") {
     ctx.fillStyle = "#5a4f4d";
     ctx.fillRect(46, 136, 874, 224);
@@ -1884,12 +1970,22 @@ function drawStageScenery() {
     ctx.fillRect(206, 240, 460, 20);
     ctx.fillStyle = "#463838";
     ctx.fillRect(676, 200, 92, 86);
+    ctx.fillStyle = "#d6ae59";
+    ctx.fillRect(216, 194, 8, 36);
+    ctx.fillRect(238, 186, 8, 44);
+    ctx.fillRect(260, 200, 8, 30);
     drawVenueSign(360, 138, 220, "פאב המוזה");
   } else if (stage.scenery === "pizza") {
     ctx.fillStyle = "#6a4940";
     ctx.fillRect(120, 146, 710, 190);
     ctx.fillStyle = "#9b6a54";
     ctx.fillRect(150, 174, 650, 140);
+    ctx.fillStyle = "#d9c49f";
+    ctx.fillRect(208, 198, 120, 22);
+    ctx.fillStyle = "#c94f43";
+    ctx.fillRect(226, 202, 16, 10);
+    ctx.fillRect(250, 202, 16, 10);
+    ctx.fillRect(274, 202, 16, 10);
     ctx.fillStyle = "#7d5248";
     ctx.beginPath();
     ctx.arc(760, 220, 96, Math.PI, Math.PI * 2);
@@ -2031,6 +2127,55 @@ function drawShots() {
     ctx.fillRect(shot.x + 4, shot.y + 1, 7, 2);
     ctx.fillStyle = "rgba(255, 214, 122, 0.45)";
     ctx.fillRect(shot.x - Math.sign(shot.vx) * 16, shot.y, 8, 6);
+  }
+}
+
+function drawEnemyShots() {
+  for (const shot of state.enemyShots) {
+    if (shot.weaponType === "blocks") {
+      ctx.fillStyle = "#d66b5d";
+      ctx.fillRect(shot.x, shot.y, 12, 12);
+      ctx.fillStyle = "#7db6d6";
+      ctx.fillRect(shot.x + 4, shot.y + 2, 4, 4);
+    } else if (shot.weaponType === "rulers") {
+      ctx.fillStyle = "#e9d79d";
+      ctx.fillRect(shot.x, shot.y, 18, 4);
+      ctx.fillStyle = "#7f633a";
+      ctx.fillRect(shot.x + 3, shot.y + 1, 1, 2);
+      ctx.fillRect(shot.x + 8, shot.y + 1, 1, 2);
+      ctx.fillRect(shot.x + 13, shot.y + 1, 1, 2);
+    } else if (shot.weaponType === "basketballs") {
+      ctx.fillStyle = "#d47a36";
+      ctx.beginPath();
+      ctx.arc(shot.x + 7, shot.y + 7, 7, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (shot.weaponType === "footballs") {
+      ctx.fillStyle = "#d9d9d9";
+      ctx.fillRect(shot.x + 2, shot.y + 2, 10, 10);
+      ctx.fillStyle = "#2f2f2f";
+      ctx.fillRect(shot.x + 5, shot.y + 5, 4, 4);
+    } else if (shot.weaponType === "books") {
+      ctx.fillStyle = "#6c4f63";
+      ctx.fillRect(shot.x, shot.y, 14, 10);
+      ctx.fillStyle = "#d8ccb7";
+      ctx.fillRect(shot.x + 10, shot.y + 1, 2, 8);
+    } else if (shot.weaponType === "water") {
+      ctx.fillStyle = "rgba(118, 201, 255, 0.8)";
+      ctx.beginPath();
+      ctx.arc(shot.x + 7, shot.y + 7, 7, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (shot.weaponType === "pizza") {
+      ctx.fillStyle = "#e0b15a";
+      ctx.beginPath();
+      ctx.moveTo(shot.x + 7, shot.y);
+      ctx.lineTo(shot.x + 14, shot.y + 14);
+      ctx.lineTo(shot.x, shot.y + 14);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#c94f43";
+      ctx.fillRect(shot.x + 5, shot.y + 6, 2, 2);
+      ctx.fillRect(shot.x + 9, shot.y + 8, 2, 2);
+    }
   }
 }
 
@@ -2414,6 +2559,8 @@ function update(dt) {
     updateAliens(dt);
     updateAlly(dt);
     updateShots(dt);
+    updateEnemyAttacks(dt);
+    updateEnemyShots(dt);
     updateStageObjective();
     updateSpawns(dt);
   }
