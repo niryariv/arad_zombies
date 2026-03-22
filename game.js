@@ -294,13 +294,76 @@ const state = {
   cheatBuffer: [],
 };
 
-const platforms = [
-  { x: 0, y: GROUND_Y, width: WIDTH, height: HEIGHT - GROUND_Y },
-  { x: 90, y: 340, width: 210, height: 22 },
-  { x: 335, y: 282, width: 160, height: 22 },
-  { x: 575, y: 248, width: 170, height: 22 },
-  { x: 770, y: 330, width: 120, height: 22 },
-];
+const STAGE_PLATFORM_LAYOUTS = {
+  kindergarten: [
+    { x: 84, y: 354, width: 178, height: 22 },
+    { x: 318, y: 304, width: 136, height: 22 },
+    { x: 530, y: 256, width: 124, height: 22 },
+    { x: 728, y: 328, width: 138, height: 22 },
+  ],
+  agClass: [
+    { x: 62, y: 334, width: 118, height: 22 },
+    { x: 228, y: 290, width: 110, height: 22 },
+    { x: 394, y: 248, width: 110, height: 22 },
+    { x: 566, y: 206, width: 126, height: 22 },
+    { x: 742, y: 284, width: 140, height: 22 },
+  ],
+  dvClass: [
+    { x: 106, y: 344, width: 190, height: 22 },
+    { x: 372, y: 296, width: 172, height: 22 },
+    { x: 630, y: 244, width: 176, height: 22 },
+  ],
+  highSchool: [
+    { x: 88, y: 360, width: 188, height: 22 },
+    { x: 324, y: 320, width: 132, height: 22 },
+    { x: 508, y: 274, width: 140, height: 22 },
+    { x: 706, y: 220, width: 152, height: 22 },
+  ],
+  football: [
+    { x: 96, y: 356, width: 168, height: 22 },
+    { x: 314, y: 312, width: 140, height: 22 },
+    { x: 504, y: 270, width: 148, height: 22 },
+    { x: 716, y: 334, width: 148, height: 22 },
+  ],
+  library: [
+    { x: 92, y: 348, width: 130, height: 22 },
+    { x: 270, y: 306, width: 126, height: 22 },
+    { x: 446, y: 262, width: 126, height: 22 },
+    { x: 622, y: 220, width: 132, height: 22 },
+    { x: 784, y: 300, width: 92, height: 22 },
+  ],
+  pool: [
+    { x: 72, y: 352, width: 136, height: 22 },
+    { x: 256, y: 324, width: 132, height: 22 },
+    { x: 440, y: 324, width: 132, height: 22 },
+    { x: 638, y: 292, width: 166, height: 22 },
+  ],
+  robotics: [
+    { x: 96, y: 344, width: 144, height: 22 },
+    { x: 292, y: 292, width: 124, height: 22 },
+    { x: 470, y: 244, width: 126, height: 22 },
+    { x: 660, y: 290, width: 158, height: 22 },
+  ],
+  pizza: [
+    { x: 110, y: 350, width: 170, height: 22 },
+    { x: 334, y: 304, width: 134, height: 22 },
+    { x: 520, y: 260, width: 130, height: 22 },
+    { x: 708, y: 214, width: 134, height: 22 },
+  ],
+  sportsField: [
+    { x: 84, y: 358, width: 182, height: 22 },
+    { x: 322, y: 314, width: 144, height: 22 },
+    { x: 516, y: 274, width: 154, height: 22 },
+    { x: 732, y: 336, width: 118, height: 22 },
+  ],
+  pub: [
+    { x: 92, y: 350, width: 134, height: 22 },
+    { x: 264, y: 306, width: 120, height: 22 },
+    { x: 430, y: 262, width: 120, height: 22 },
+    { x: 594, y: 226, width: 122, height: 22 },
+    { x: 756, y: 286, width: 110, height: 22 },
+  ],
+};
 
 function createPlayer() {
   return createPlayerState(PLAYER_CONFIGS[0], 160);
@@ -419,7 +482,7 @@ function resolvePlatformLanding(entity, previousY) {
   const currentBottom = entity.y + entity.height;
   let landingPlatform = null;
 
-  for (const platform of platforms) {
+  for (const platform of currentPlatforms()) {
     const crossesPlatformTop =
       entity.x + entity.width > platform.x &&
       entity.x < platform.x + platform.width &&
@@ -446,6 +509,14 @@ function resolvePlatformLanding(entity, previousY) {
 
 function currentStageDef() {
   return stageDefs[state.stageIndex];
+}
+
+function currentPlatforms() {
+  const stage = currentStageDef();
+  return [
+    { x: 0, y: GROUND_Y, width: WIDTH, height: HEIGHT - GROUND_Y },
+    ...(stage ? STAGE_PLATFORM_LAYOUTS[stage.scenery] ?? STAGE_PLATFORM_LAYOUTS.kindergarten : STAGE_PLATFORM_LAYOUTS.kindergarten),
+  ];
 }
 
 function activePlayers() {
@@ -509,34 +580,13 @@ function createBeaconSet(count) {
 }
 
 function getSpawnPoints(index) {
-  const sets = [
-    [
-      { x: 540, y: GROUND_Y - 56, side: 1 },
-      { x: 620, y: GROUND_Y - 56, side: 1 },
-      { x: 700, y: GROUND_Y - 56, side: 1 },
-      { x: 820, y: GROUND_Y - 56, side: 1 },
-      { x: 610, y: 192, side: 1 },
-    ],
-    [
-      { x: 760, y: GROUND_Y - 56, side: 1 },
-      { x: 640, y: 192, side: 1 },
-      { x: 420, y: 226, side: 1 },
-      { x: 220, y: 284, side: -1 },
-    ],
-    [
-      { x: 170, y: 284, side: -1 },
-      { x: 420, y: 226, side: 1 },
-      { x: 648, y: 192, side: 1 },
-      { x: 820, y: 284, side: 1 },
-    ],
-    [
-      { x: 180, y: GROUND_Y - 56, side: -1 },
-      { x: 420, y: 226, side: 1 },
-      { x: 640, y: 192, side: 1 },
-      { x: 830, y: GROUND_Y - 56, side: 1 },
-    ],
-  ];
-  return sets[index % sets.length];
+  const stage = stageDefs[index];
+  const layout = STAGE_PLATFORM_LAYOUTS[stage.scenery] ?? STAGE_PLATFORM_LAYOUTS.kindergarten;
+  return layout.map((platform, platformIndex) => ({
+    x: platform.x + Math.max(12, Math.floor(platform.width / 2) - 16),
+    y: platform.y - 56,
+    side: platformIndex % 2 === 0 ? 1 : -1,
+  }));
 }
 
 function configureStage(index) {
@@ -1670,7 +1720,7 @@ function drawAradVista(time) {
 
 function drawPlatforms() {
   ctx.fillStyle = "#6f4f3f";
-  for (const platform of platforms) {
+  for (const platform of currentPlatforms()) {
     ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
     ctx.fillStyle = "#c28f64";
     ctx.fillRect(platform.x, platform.y, platform.width, 5);
