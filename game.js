@@ -1516,7 +1516,7 @@ function drawPixelFigure(x, y, palette, mirrored = false) {
 function drawDetailedHuman(x, y, palette, mirrored = false, shooting = false) {
   ctx.save();
   ctx.translate(x, y + 7);
-  ctx.scale(0.9, 0.9);
+  ctx.scale(0.82, 0.82);
   if (mirrored) {
     ctx.scale(-1, 1);
     ctx.translate(-26, 0);
@@ -1575,7 +1575,7 @@ function drawDetailedHuman(x, y, palette, mirrored = false, shooting = false) {
 function drawZombieFigure(x, y, palette, mirrored = false) {
   ctx.save();
   ctx.translate(x, y + 18);
-  ctx.scale(0.72, 0.72);
+  ctx.scale(0.64, 0.64);
   if (mirrored) {
     ctx.scale(-1, 1);
     ctx.translate(-24, 0);
