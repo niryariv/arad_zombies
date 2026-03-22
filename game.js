@@ -741,7 +741,7 @@ function configureStage(index) {
   setStatus(stage.status);
   setHint(stage.weaponName ? `${stage.hint} הם זורקים: ${stage.weaponName}.` : stage.hint);
   state.ally = existingAlly?.active
-    ? { ...existingAlly, x: leadPlayer().x + 54, y: leadPlayer().y, shootCooldown: 0 }
+    ? { ...existingAlly, x: leadPlayer().x + 54, y: leadPlayer().y, vx: 0, shootCooldown: 0 }
     : null;
   seedStageEnemies();
   syncHud();
@@ -1197,7 +1197,9 @@ function updateAlly(dt) {
 
   const ally = state.ally;
   const anchorX = clamp(leadPlayer().x + 54, 40, WIDTH - 80);
+  const previousX = ally.x;
   ally.x += (anchorX - ally.x) * Math.min(1, dt * 4);
+  ally.vx = (ally.x - previousX) / Math.max(dt, 0.001);
   ally.y = GROUND_Y - ally.height;
   ally.shootCooldown = Math.max(0, ally.shootCooldown - dt);
 
@@ -1421,6 +1423,7 @@ function updateStageObjective() {
           width: 26,
           height: 54,
           facing: -1,
+          vx: 0,
           shootCooldown: 0.4,
         };
         state.dialogueTimer = 6.4;
@@ -1590,9 +1593,54 @@ function drawPixelFigure(x, y, palette, mirrored = false) {
   ctx.restore();
 }
 
-function drawDetailedHuman(x, y, palette, mirrored = false, shooting = false) {
+function getWalkCycle(speed, variant = "human") {
+  const moving = Math.abs(speed) > 12;
+  if (!moving) {
+    return {
+      moving: false,
+      bodyBob: 0,
+      frontLeg: 0,
+      backLeg: 0,
+      frontArm: 0,
+      backArm: 0,
+    };
+  }
+
+  const phaseSpeed =
+    variant === "player" ? 0.06 :
+    variant === "ally" ? 0.052 :
+    variant === "survivor" ? 0.045 :
+    variant === "zombie" ? 0.04 :
+    0.05;
+  const legSwing =
+    variant === "player" ? 4.5 :
+    variant === "ally" ? 3.8 :
+    variant === "survivor" ? 2.8 :
+    variant === "zombie" ? 5.5 :
+    3.6;
+  const armSwing =
+    variant === "player" ? 3.4 :
+    variant === "ally" ? 2.8 :
+    variant === "survivor" ? 2.1 :
+    variant === "zombie" ? 4.2 :
+    2.6;
+  const bobAmount = variant === "zombie" ? 1.2 : 1.8;
+  const phase = state.time * (80 + Math.abs(speed) * 0.6) * phaseSpeed;
+  const wave = Math.sin(phase);
+
+  return {
+    moving: true,
+    bodyBob: Math.sin(phase * 2) * bobAmount,
+    frontLeg: wave * legSwing,
+    backLeg: -wave * legSwing,
+    frontArm: -wave * armSwing,
+    backArm: wave * armSwing,
+  };
+}
+
+function drawDetailedHuman(x, y, palette, mirrored = false, shooting = false, walkCycle = getWalkCycle(0)) {
   ctx.save();
-  ctx.translate(x, y + 7);
+  ctx.translate(x, y + 7 + walkCycle.bodyBob);
   ctx.scale(0.82, 0.82);
   if (mirrored) {
     ctx.scale(-1, 1);
@@ -1622,24 +1670,24 @@ function drawDetailedHuman(x, y, palette, mirrored = false, shooting = false) {
   ctx.fillRect(19, 20, 3, 24);
   ctx.fillRect(7, 31, 12, 12);
   ctx.fillStyle = palette.arm;
-  ctx.fillRect(3, 19, 3, 11);
+  ctx.fillRect(3, 19 + walkCycle.backArm, 3, 11);
   if (shooting) {
     ctx.fillRect(18, 19, 7, 3);
     ctx.fillRect(24, 18, 5, 4);
     ctx.fillStyle = palette.hand ?? palette.arm;
     ctx.fillRect(28, 18, 2, 3);
   } else {
-    ctx.fillRect(20, 19, 3, 11);
+    ctx.fillRect(20, 19 + walkCycle.frontArm, 3, 11);
   }
   ctx.fillStyle = palette.pantsShadow;
-  ctx.fillRect(8, 33, 4, 15);
-  ctx.fillRect(14, 33, 4, 15);
+  ctx.fillRect(8, 33 + walkCycle.frontLeg, 4, 15);
+  ctx.fillRect(14, 33 + walkCycle.backLeg, 4, 15);
   ctx.fillStyle = palette.pants;
-  ctx.fillRect(9, 34, 2, 12);
-  ctx.fillRect(15, 34, 2, 12);
+  ctx.fillRect(9, 34 + walkCycle.frontLeg, 2, 12);
+  ctx.fillRect(15, 34 + walkCycle.backLeg, 2, 12);
   ctx.fillStyle = palette.boots;
-  ctx.fillRect(7, 48, 5, 4);
-  ctx.fillRect(14, 48, 5, 4);
+  ctx.fillRect(7, 48 + walkCycle.frontLeg, 5, 4);
+  ctx.fillRect(14, 48 + walkCycle.backLeg, 5, 4);
   ctx.fillStyle = "#f7efcf";
   ctx.fillRect(10, 9, 1, 1);
   ctx.fillRect(15, 9, 1, 1);
@@ -1649,9 +1697,9 @@ function drawDetailedHuman(x, y, palette, mirrored = false, shooting = false) {
   ctx.restore();
 }
 
-function drawZombieFigure(x, y, palette, mirrored = false) {
+function drawZombieFigure(x, y, palette, mirrored = false, walkCycle = getWalkCycle(0, "zombie")) {
   ctx.save();
-  ctx.translate(x, y + 18);
+  ctx.translate(x, y + 18 + walkCycle.bodyBob);
   ctx.scale(0.64, 0.64);
   if (mirrored) {
     ctx.scale(-1, 1);
@@ -1668,14 +1716,14 @@ function drawZombieFigure(x, y, palette, mirrored = false) {
   ctx.fillStyle = palette.shirt;
   ctx.fillRect(4, 16, 16, 13);
   ctx.fillStyle = palette.pants;
-  ctx.fillRect(5, 29, 6, 13);
-  ctx.fillRect(13, 29, 6, 13);
+  ctx.fillRect(5, 29 + walkCycle.frontLeg, 6, 13);
+  ctx.fillRect(13, 29 + walkCycle.backLeg, 6, 13);
   ctx.fillStyle = palette.arm;
-  ctx.fillRect(1, 17, 4, 10);
-  ctx.fillRect(19, 18, 4, 10);
+  ctx.fillRect(1, 17 + walkCycle.frontArm, 4, 10);
+  ctx.fillRect(19, 18 + walkCycle.backArm, 4, 10);
   ctx.fillStyle = palette.boots;
-  ctx.fillRect(4, 42, 7, 6);
-  ctx.fillRect(13, 42, 7, 6);
+  ctx.fillRect(4, 42 + walkCycle.frontLeg, 7, 6);
+  ctx.fillRect(13, 42 + walkCycle.backLeg, 7, 6);
   ctx.fillStyle = "#e6ffb8";
   ctx.fillRect(8, 8, 2, 2);
   ctx.fillRect(14, 8, 2, 2);
@@ -2260,6 +2308,7 @@ function drawPlayers() {
     const flash = state.invulnerableTimer > 0 && Math.floor(state.time * 14) % 2 === 0;
     drawGroundShadow(player.x + player.width / 2, 20, 0.22);
     if (!flash) {
+      const walkCycle = getWalkCycle(player.vx, "player");
       drawDetailedHuman(
         player.x,
         player.y,
@@ -2269,6 +2318,7 @@ function drawPlayers() {
         },
         player.facing < 0,
         player.shootFlash > 0,
+        walkCycle,
       );
     }
 
@@ -2291,6 +2341,7 @@ function drawAlly() {
   }
 
   drawGroundShadow(state.ally.x + state.ally.width / 2, 18, 0.18);
+  const allyWalkCycle = getWalkCycle(state.ally.vx ?? 0, "ally");
   drawDetailedHuman(
     state.ally.x,
     state.ally.y,
@@ -2313,6 +2364,7 @@ function drawAlly() {
     },
     state.ally.facing < 0,
     false,
+    allyWalkCycle,
   );
 }
 
@@ -2412,12 +2464,14 @@ function drawZombieAccessory(stage, zombie) {
 function drawZombies() {
   const stage = currentStageDef();
   for (const zombie of state.zombies) {
+    const zombieWalkCycle = getWalkCycle(zombie.vx, "zombie");
     drawGroundShadow(zombie.x + zombie.width / 2, 18, 0.18, zombie.y + zombie.height + 4);
     drawZombieFigure(
       zombie.x,
       zombie.y,
       getZombiePalette(stage, zombie),
       zombie.vx > 0,
+      zombieWalkCycle,
     );
     drawZombieAccessory(stage, zombie);
   }
