@@ -559,6 +559,15 @@ function rectsOverlap(a, b) {
   );
 }
 
+function isEntityOnScreen(entity, margin = 24) {
+  return (
+    entity.x + entity.width > -margin &&
+    entity.x < WIDTH + margin &&
+    entity.y + entity.height > -margin &&
+    entity.y < HEIGHT + margin
+  );
+}
+
 function resolvePlatformLanding(entity, previousY) {
   const previousBottom = previousY + entity.height;
   const currentBottom = entity.y + entity.height;
@@ -865,7 +874,12 @@ function updateEnemyAttacks(dt) {
     return;
   }
 
-  const attacker = state.zombies[Math.floor(Math.random() * state.zombies.length)];
+  const attackers = state.zombies.filter((zombie) => isEntityOnScreen(zombie, 8));
+  if (attackers.length === 0) {
+    return;
+  }
+
+  const attacker = attackers[Math.floor(Math.random() * attackers.length)];
   let target = activePlayers()[0];
   let nearestDistance = Infinity;
   for (const player of activePlayers()) {
@@ -874,6 +888,10 @@ function updateEnemyAttacks(dt) {
       nearestDistance = distance;
       target = player;
     }
+  }
+
+  if (nearestDistance > 320) {
+    return;
   }
 
   const actualWeaponType =
@@ -1162,7 +1180,7 @@ function updateZombies(dt) {
     }
 
     for (const player of players) {
-      if (rectsOverlap(player, zombie)) {
+      if (isEntityOnScreen(zombie, 8) && rectsOverlap(player, zombie)) {
         damagePlayer(player);
       }
     }
@@ -1183,7 +1201,7 @@ function updateAliens(dt) {
     }
 
     for (const player of players) {
-      if (rectsOverlap(player, alien)) {
+      if (isEntityOnScreen(alien, 8) && rectsOverlap(player, alien)) {
         damagePlayer(player);
       }
     }
