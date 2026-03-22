@@ -1621,30 +1621,34 @@ function getWalkCycle(speed, variant = "human") {
       backLeg: 0,
       frontArm: 0,
       backArm: 0,
+      torsoLean: 0,
+      shoulderDrop: 0,
+      hipShift: 0,
     };
   }
 
   const phaseSpeed =
-    variant === "player" ? 0.06 :
-    variant === "ally" ? 0.052 :
-    variant === "survivor" ? 0.045 :
-    variant === "zombie" ? 0.04 :
+    variant === "player" ? 0.052 :
+    variant === "ally" ? 0.048 :
+    variant === "survivor" ? 0.042 :
+    variant === "zombie" ? 0.036 :
     0.05;
   const legSwing =
-    variant === "player" ? 4.5 :
-    variant === "ally" ? 3.8 :
-    variant === "survivor" ? 2.8 :
-    variant === "zombie" ? 5.5 :
-    3.6;
-  const armSwing =
-    variant === "player" ? 3.4 :
+    variant === "player" ? 3.2 :
     variant === "ally" ? 2.8 :
     variant === "survivor" ? 2.1 :
     variant === "zombie" ? 4.2 :
+    3.6;
+  const armSwing =
+    variant === "player" ? 2.2 :
+    variant === "ally" ? 2.1 :
+    variant === "survivor" ? 1.6 :
+    variant === "zombie" ? 3.4 :
     2.6;
   const bobAmount = variant === "zombie" ? 1.2 : 1.8;
   const phase = state.time * (80 + Math.abs(speed) * 0.6) * phaseSpeed;
   const wave = Math.sin(phase);
+  const offsetWave = Math.sin(phase + Math.PI / 2);
 
   return {
     moving: true,
@@ -1652,11 +1656,14 @@ function getWalkCycle(speed, variant = "human") {
     frontLeg: wave * legSwing,
     backLeg: -wave * legSwing,
     frontArm: -wave * armSwing,
-    backArm: wave * armSwing,
+    backArm: wave * armSwing * 0.8,
+    torsoLean: wave * (variant === "zombie" ? 0.35 : 0.22),
+    shoulderDrop: offsetWave * (variant === "zombie" ? 1.4 : 0.9),
+    hipShift: wave * (variant === "zombie" ? 1.1 : 0.75),
   };
 }
 
-function drawDetailedHuman(x, y, palette, mirrored = false, shooting = false, walkCycle = getWalkCycle(0)) {
+function drawDetailedHuman(x, y, palette, mirrored = false, shooting = false, walkCycle = getWalkCycle(0), shootPose = 0) {
   ctx.save();
   ctx.translate(x, y + 7 + walkCycle.bodyBob);
   ctx.scale(0.82, 0.82);
@@ -1664,48 +1671,49 @@ function drawDetailedHuman(x, y, palette, mirrored = false, shooting = false, wa
     ctx.scale(-1, 1);
     ctx.translate(-26, 0);
   }
+  ctx.transform(1, 0, walkCycle.torsoLean, 1, 0, 0);
 
   ctx.fillStyle = palette.coatShadow ?? "#6f5d58";
-  ctx.fillRect(5, 18, 16, 30);
+  ctx.fillRect(5, 18 + walkCycle.shoulderDrop * 0.25, 16, 30);
   ctx.fillStyle = palette.skinShadow;
   ctx.fillRect(8, 5, 10, 11);
   ctx.fillStyle = palette.skin;
   ctx.fillRect(9, 6, 8, 9);
   ctx.fillStyle = palette.neck ?? palette.skinShadow;
-  ctx.fillRect(11, 15, 4, 3);
+  ctx.fillRect(11, 15 + walkCycle.shoulderDrop * 0.15, 4, 3);
   ctx.fillStyle = palette.hair;
   ctx.fillRect(7, 2, 12, 5);
   ctx.fillRect(6, 5, 2, 4);
   ctx.fillRect(18, 5, 2, 4);
   ctx.fillStyle = palette.shirtShadow;
-  ctx.fillRect(6, 18, 14, 15);
+  ctx.fillRect(6, 18 + walkCycle.shoulderDrop * 0.2, 14, 15);
   ctx.fillStyle = palette.shirt;
-  ctx.fillRect(8, 19, 10, 12);
+  ctx.fillRect(8, 19 + walkCycle.shoulderDrop * 0.2, 10, 12);
   ctx.fillStyle = palette.collar ?? "#d8d2c3";
-  ctx.fillRect(10, 18, 6, 2);
+  ctx.fillRect(10, 18 + walkCycle.shoulderDrop * 0.12, 6, 2);
   ctx.fillStyle = palette.coat ?? "#8a756c";
-  ctx.fillRect(4, 20, 3, 24);
-  ctx.fillRect(19, 20, 3, 24);
-  ctx.fillRect(7, 31, 12, 12);
+  ctx.fillRect(4, 20 + walkCycle.backArm * 0.15, 3, 24);
+  ctx.fillRect(19, 20 + walkCycle.frontArm * 0.15, 3, 24);
+  ctx.fillRect(7 + walkCycle.hipShift * 0.18, 31, 12, 12);
   ctx.fillStyle = palette.arm;
-  ctx.fillRect(3, 19 + walkCycle.backArm, 3, 11);
+  ctx.fillRect(3, 19 + walkCycle.backArm + shootPose * 0.8, 3, 11);
   if (shooting) {
-    ctx.fillRect(18, 19, 7, 3);
-    ctx.fillRect(24, 18, 5, 4);
+    ctx.fillRect(18, 17 - shootPose * 1.1, 8, 3);
+    ctx.fillRect(24, 16 - shootPose * 1.1, 5, 4);
     ctx.fillStyle = palette.hand ?? palette.arm;
-    ctx.fillRect(28, 18, 2, 3);
+    ctx.fillRect(28, 16 - shootPose, 2, 3);
   } else {
     ctx.fillRect(20, 19 + walkCycle.frontArm, 3, 11);
   }
   ctx.fillStyle = palette.pantsShadow;
-  ctx.fillRect(8, 33 + walkCycle.frontLeg, 4, 15);
-  ctx.fillRect(14, 33 + walkCycle.backLeg, 4, 15);
+  ctx.fillRect(8 + walkCycle.hipShift * 0.2, 33 + walkCycle.frontLeg, 4, 15);
+  ctx.fillRect(14 - walkCycle.hipShift * 0.2, 33 + walkCycle.backLeg, 4, 15);
   ctx.fillStyle = palette.pants;
-  ctx.fillRect(9, 34 + walkCycle.frontLeg, 2, 12);
-  ctx.fillRect(15, 34 + walkCycle.backLeg, 2, 12);
+  ctx.fillRect(9 + walkCycle.hipShift * 0.15, 34 + walkCycle.frontLeg, 2, 12);
+  ctx.fillRect(15 - walkCycle.hipShift * 0.15, 34 + walkCycle.backLeg, 2, 12);
   ctx.fillStyle = palette.boots;
-  ctx.fillRect(7, 48 + walkCycle.frontLeg, 5, 4);
-  ctx.fillRect(14, 48 + walkCycle.backLeg, 5, 4);
+  ctx.fillRect(7 + walkCycle.hipShift * 0.1, 48 + walkCycle.frontLeg, 5, 4);
+  ctx.fillRect(14 - walkCycle.hipShift * 0.1, 48 + walkCycle.backLeg, 5, 4);
   ctx.fillStyle = "#f7efcf";
   ctx.fillRect(10, 9, 1, 1);
   ctx.fillRect(15, 9, 1, 1);
@@ -2327,6 +2335,7 @@ function drawPlayers() {
     drawGroundShadow(player.x + player.width / 2, 20, 0.22);
     if (!flash) {
       const walkCycle = getWalkCycle(player.vx, "player");
+      const shootPose = player.shootFlash > 0 ? player.shootFlash / 0.12 : 0;
       drawDetailedHuman(
         player.x,
         player.y,
@@ -2337,18 +2346,22 @@ function drawPlayers() {
         player.facing < 0,
         player.shootFlash > 0,
         walkCycle,
+        shootPose,
       );
     }
 
     if (player.shootFlash > 0) {
-      const flashX = player.x + (player.facing > 0 ? 26 : -6);
-      const flashY = player.y + 16;
-      ctx.fillStyle = "#f5d7a2";
-      ctx.fillRect(flashX, flashY + 1, 7, 6);
-      ctx.fillStyle = "#e8b774";
-      ctx.fillRect(flashX + (player.facing > 0 ? 5 : -1), flashY + 2, 8, 3);
-      ctx.fillStyle = "rgba(245, 215, 162, 0.35)";
-      ctx.fillRect(flashX + (player.facing > 0 ? 10 : -6), flashY + 1, 6, 5);
+      const flashRatio = player.shootFlash / 0.12;
+      const flashX = player.x + (player.facing > 0 ? 28 : -8);
+      const flashY = player.y + 14 - flashRatio * 1.5;
+      ctx.fillStyle = `rgba(255, 240, 192, ${0.45 + flashRatio * 0.35})`;
+      ctx.fillRect(flashX - (player.facing > 0 ? 0 : 6), flashY - 1, 10, 8);
+      ctx.fillStyle = "#ffe2a4";
+      ctx.fillRect(flashX, flashY + 1, 8 + flashRatio * 3, 4);
+      ctx.fillStyle = "#ffb95d";
+      ctx.fillRect(flashX + (player.facing > 0 ? 5 : -2), flashY, 7 + flashRatio * 4, 6);
+      ctx.fillStyle = `rgba(255, 214, 130, ${0.25 + flashRatio * 0.25})`;
+      ctx.fillRect(flashX + (player.facing > 0 ? 11 : -8), flashY + 1, 8, 4);
     }
   }
 }
