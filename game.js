@@ -18,9 +18,9 @@ const PLAYER_SPEED = 220;
 const JUMP_FORCE = 650;
 const ZOMBIE_BASE_SPEED = 70;
 const CHEAT_CODE = ["KeyI", "KeyM", "KeyM", "KeyO", "KeyR", "KeyT", "KeyA", "KeyL"];
+const URL_PARAMS = new URLSearchParams(window.location.search);
 const IMMORTAL_QUERY_ENABLED = (() => {
-  const params = new URLSearchParams(window.location.search);
-  const value = params.get("immortal") ?? params.get("cheat");
+  const value = URL_PARAMS.get("immortal") ?? URL_PARAMS.get("cheat");
   return value === "1" || value === "true" || value === "on";
 })();
 const PLAYER_CONFIGS = [
@@ -254,6 +254,25 @@ const stageDefs = [
     aliens: 0,
   },
 ];
+
+const STAGE_QUERY_INDEX = (() => {
+  const rawStage = URL_PARAMS.get("stage");
+  if (!rawStage) {
+    return null;
+  }
+
+  const parsed = Number.parseInt(rawStage, 10);
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+
+  const index = parsed - 1;
+  if (index < 0 || index >= stageDefs.length) {
+    return null;
+  }
+
+  return index;
+})();
 
 const state = {
   players: [],
@@ -494,6 +513,9 @@ function resetGame() {
       ? "בחרו 1 או 2 שחקנים, ואז לחצו אנטר כדי להתחיל. מצב אלמוות פעיל."
       : "בחרו 1 או 2 שחקנים, ואז לחצו אנטר או לחצו על המסך כדי להתחיל.",
   );
+  if (STAGE_QUERY_INDEX !== null) {
+    setHint(`נבחר מעבר ישיר לשלב ${STAGE_QUERY_INDEX + 1}: ${stageDefs[STAGE_QUERY_INDEX].name}. לחצו אנטר כדי להתחיל.`);
+  }
   syncHud();
 }
 
@@ -763,7 +785,7 @@ function beginSurvivalMode() {
   }
 
   state.mode = "survival";
-  configureStage(0);
+  configureStage(STAGE_QUERY_INDEX ?? 0);
 }
 
 function spawnZombie(options = {}) {
