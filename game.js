@@ -2124,6 +2124,13 @@ function drawStageScenery() {
       ctx.fillRect(146, 176, 180, 72);
       ctx.fillStyle = "#e9d79d";
       ctx.fillRect(338, 186, 10, 80);
+      ctx.direction = "rtl";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#f3efcf";
+      ctx.font = '18px "Rubik"';
+      ctx.fillText("שלום כיתה א", 236, 218);
+      ctx.direction = "ltr";
+      ctx.textAlign = "start";
     } else {
       ctx.fillStyle = "#534440";
       ctx.fillRect(152, 188, 96, 72);
