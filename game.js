@@ -952,7 +952,6 @@ function fireShot(player) {
   });
   player.shootFlash = 0.12;
   state.shotCooldown = 0.22;
-  setHint("ירי בוצע. רווח או קליק ימני לירייה הבאה.");
 }
 
 function fireAllyShot(targetX, targetY) {
