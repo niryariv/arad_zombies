@@ -1120,61 +1120,105 @@ function drawGate() {
 
 function walkFrame(speed, seed, zombie = false) {
   if (Math.abs(speed) < 12) {
-    return { legA: 0, legB: 0, footA: 0, footB: 0, armA: 0, armB: 0, bob: 0 };
+    return {
+      bodyBob: 0,
+      frontLeg: 0,
+      backLeg: 0,
+      frontLegX: 0,
+      backLegX: 0,
+      frontFootX: 0,
+      backFootX: 0,
+      frontArm: 0,
+      backArm: 0,
+      frontArmX: 0,
+      backArmX: 0,
+      torsoLean: 0,
+      shoulderDrop: 0,
+      hipShift: 0,
+    };
   }
   const frames = zombie
     ? [
-        { legA: -3, legB: 2, footA: 3, footB: -1, armA: 2, armB: -2, bob: 0 },
-        { legA: -1, legB: 0, footA: 1, footB: 0, armA: 1, armB: -1, bob: 1 },
-        { legA: 2, legB: -3, footA: -1, footB: 3, armA: -2, armB: 2, bob: 0 },
-        { legA: 0, legB: -1, footA: 0, footB: 1, armA: -1, armB: 1, bob: 1 },
+        { bodyBob: 0, torsoLean: -0.2, shoulderDrop: 0, hipShift: -0.5, frontLeg: -3, backLeg: 2, frontLegX: 2, backLegX: -1, frontFootX: 3, backFootX: -1, frontArm: 2, backArm: -2, frontArmX: 1, backArmX: -1 },
+        { bodyBob: 1, torsoLean: -0.08, shoulderDrop: 1, hipShift: 0, frontLeg: -1, backLeg: 0, frontLegX: 1, backLegX: 0, frontFootX: 1, backFootX: 0, frontArm: 1, backArm: -1, frontArmX: 0, backArmX: 0 },
+        { bodyBob: 0, torsoLean: 0.16, shoulderDrop: 0, hipShift: 0.5, frontLeg: 2, backLeg: -3, frontLegX: -1, backLegX: 2, frontFootX: -1, backFootX: 3, frontArm: -2, backArm: 2, frontArmX: -1, backArmX: 1 },
+        { bodyBob: 1, torsoLean: 0.04, shoulderDrop: -1, hipShift: 0, frontLeg: 0, backLeg: -1, frontLegX: 0, backLegX: 1, frontFootX: 0, backFootX: 1, frontArm: -1, backArm: 1, frontArmX: 0, backArmX: 0 },
       ]
     : [
-        { legA: -2, legB: 2, footA: 2, footB: -1, armA: 2, armB: -2, bob: 0 },
-        { legA: 0, legB: 1, footA: 1, footB: 0, armA: 1, armB: -1, bob: 1 },
-        { legA: 2, legB: -2, footA: -1, footB: 2, armA: -2, armB: 2, bob: 0 },
-        { legA: 1, legB: 0, footA: 0, footB: 1, armA: -1, armB: 1, bob: 1 },
+        { bodyBob: 0, torsoLean: -0.1, shoulderDrop: -1, hipShift: -0.4, frontLeg: -2, backLeg: 2, frontLegX: 1.4, backLegX: -1, frontFootX: 2.2, backFootX: -1, frontArm: 2, backArm: -2, frontArmX: 1, backArmX: -1 },
+        { bodyBob: 1, torsoLean: 0.02, shoulderDrop: 0, hipShift: 0, frontLeg: 0, backLeg: 1, frontLegX: 0.6, backLegX: -0.2, frontFootX: 0.8, backFootX: 0, frontArm: 1, backArm: -1, frontArmX: 0.4, backArmX: -0.4 },
+        { bodyBob: 0, torsoLean: 0.12, shoulderDrop: 1, hipShift: 0.4, frontLeg: 2, backLeg: -2, frontLegX: -1, backLegX: 1.4, frontFootX: -1, backFootX: 2.2, frontArm: -2, backArm: 2, frontArmX: -1, backArmX: 1 },
+        { bodyBob: 1, torsoLean: 0.02, shoulderDrop: 0, hipShift: 0, frontLeg: 1, backLeg: 0, frontLegX: -0.2, backLegX: 0.6, frontFootX: 0, backFootX: 0.8, frontArm: -1, backArm: 1, frontArmX: -0.4, backArmX: 0.4 },
       ];
   const cadence = zombie ? 7 : 10;
   return frames[Math.floor((state.time + seed) * cadence) % frames.length];
 }
 
 function drawHuman(player) {
-  const p = player.config.palette;
   const frame = walkFrame(player.vx, player.id * 0.17, false);
   const flash = player.invulnerable > 0 && Math.floor(state.time * 14) % 2 === 0;
   if (flash) {
     return;
   }
+  const p = player.config.palette;
+  const palette = {
+    skin: p.skin,
+    skinShadow: p.shadow,
+    neck: p.shadow,
+    hair: p.hair,
+    shirt: p.shirt,
+    shirtShadow: p.shirtDark,
+    collar: "#d8d0bf",
+    coat: p.coat,
+    coatShadow: p.coatDark,
+    pants: p.pants,
+    pantsShadow: "#3f4962",
+    boots: p.boots,
+    arm: p.skin,
+    hand: p.skin,
+    cheek: "rgba(188, 120, 94, 0.45)",
+  };
+  const shootPose = player.shootFlash > 0 ? player.shootFlash / 0.13 : 0;
 
   ctx.save();
-  ctx.translate(player.x, player.y + 7 + frame.bob);
+  ctx.translate(player.x, player.y + 7 + frame.bodyBob);
+  ctx.scale(0.82, 0.82);
   if (player.facing < 0) {
     ctx.scale(-1, 1);
-    ctx.translate(-28, 0);
+    ctx.translate(-26, 0);
   }
-  const shoot = player.shootFlash / 0.13;
-  drawRect(5, 18, 17, 30, p.coatDark);
-  drawRect(8, 5, 10, 11, p.shadow);
-  drawRect(9, 6, 8, 9, p.skin);
-  drawRect(7, 2, 12, 5, p.hair);
-  drawRect(6, 18, 14, 15, p.shirtDark);
-  drawRect(8, 19, 10, 12, p.shirt);
-  drawRect(4, 20 + frame.armB, 3, 24, p.coat);
-  drawRect(3, 19 + frame.armB, 3, 11, p.skin);
+  ctx.transform(1, 0, frame.torsoLean, 1, 0, 0);
+
+  drawRect(5, 18 + frame.shoulderDrop * 0.25, 16, 30, palette.coatShadow);
+  drawRect(8, 5, 10, 11, palette.skinShadow);
+  drawRect(9, 6, 8, 9, palette.skin);
+  drawRect(11, 15 + frame.shoulderDrop * 0.15, 4, 3, palette.neck);
+  drawRect(7, 2, 12, 5, palette.hair);
+  drawRect(6, 5, 2, 4, palette.hair);
+  drawRect(18, 5, 2, 4, palette.hair);
+  drawRect(6, 18 + frame.shoulderDrop * 0.2, 14, 15, palette.shirtShadow);
+  drawRect(8, 19 + frame.shoulderDrop * 0.2, 10, 12, palette.shirt);
+  drawRect(10, 18 + frame.shoulderDrop * 0.12, 6, 2, palette.collar);
+  drawRect(4 + frame.backArmX * 0.2, 20 + frame.backArm * 0.15, 3, 24, palette.coat);
+  drawRect(19 + frame.frontArmX * 0.2, 20 + frame.frontArm * 0.15, 3, 24, palette.coat);
+  drawRect(7 + frame.hipShift * 0.18, 31, 12, 12, palette.coat);
+  drawRect(3 + frame.backArmX, 19 + frame.backArm + shootPose * 0.8, 3, 11, palette.arm);
   if (player.shootFlash > 0) {
-    drawRect(18, 17 - shoot, 8, 3, p.skin);
-    drawRect(24, 16 - shoot, 5, 4, p.skin);
-    drawRect(28, 16 - shoot, 2, 3, p.skin);
+    drawRect(18, 17 - shootPose * 1.1, 8, 3, palette.arm);
+    drawRect(24, 16 - shootPose * 1.1, 5, 4, palette.arm);
+    drawRect(28, 16 - shootPose, 2, 3, palette.hand);
   } else {
-    drawRect(20, 19 + frame.armA, 3, 11, p.skin);
+    drawRect(20 + frame.frontArmX, 19 + frame.frontArm, 3, 11, palette.arm);
   }
-  drawRect(8, 33 + frame.legA, 4, 15, p.pants);
-  drawRect(14, 33 + frame.legB, 4, 15, p.pants);
-  drawRect(7 + frame.footA, 48 + frame.legA, 6, 4, p.boots);
-  drawRect(14 + frame.footB, 48 + frame.legB, 6, 4, p.boots);
+  drawRect(8 + frame.hipShift * 0.2 + frame.frontLegX, 33 + frame.frontLeg, 4, 15, palette.pantsShadow);
+  drawRect(14 - frame.hipShift * 0.2 + frame.backLegX, 33 + frame.backLeg, 4, 15, palette.pantsShadow);
+  drawRect(9 + frame.hipShift * 0.15 + frame.frontLegX, 34 + frame.frontLeg, 2, 12, palette.pants);
+  drawRect(15 - frame.hipShift * 0.15 + frame.backLegX, 34 + frame.backLeg, 2, 12, palette.pants);
+  drawRect(7 + frame.hipShift * 0.1 + frame.frontFootX, 48 + frame.frontLeg, 5, 4, palette.boots);
+  drawRect(14 - frame.hipShift * 0.1 + frame.backFootX, 48 + frame.backLeg, 5, 4, palette.boots);
   drawRect(10, 9, 1, 1, "#fff3ca");
   drawRect(15, 9, 1, 1, "#fff3ca");
+  drawRect(9, 12, 1, 1, palette.cheek);
   ctx.restore();
 
   if (player.shootFlash > 0) {
@@ -1190,23 +1234,28 @@ function drawEnemy(enemy) {
   const p = enemy.palette;
   const frame = walkFrame(enemy.vx, enemy.frameSeed, true);
   ctx.save();
-  ctx.translate(enemy.x, enemy.y + 18 + frame.bob);
+  ctx.translate(enemy.x, enemy.y + 18 + frame.bodyBob);
+  ctx.scale(0.64, 0.64);
   if (enemy.facing > 0) {
     ctx.scale(-1, 1);
-    ctx.translate(-28, 0);
+    ctx.translate(-24, 0);
   }
-  drawRect(4, 2, 18, 48, "rgba(20, 12, 12, 0.45)");
+  ctx.transform(1, 0, frame.torsoLean, 1, 0, 0);
+  drawRect(4, 2, 18, 48, "rgba(20, 12, 12, 0.5)");
   drawRect(6, 4, 12, 10, p.skin);
   drawRect(6, 4, 12, 4, p.hair);
+  drawRect(5, 12, 14, 4, "#6d8a69");
   drawRect(4, 16, 16, 13, p.shirt);
-  drawRect(5 + frame.footA, 29 + frame.legA, 6, 13, p.pants);
-  drawRect(13 + frame.footB, 29 + frame.legB, 6, 13, p.pants);
-  drawRect(1, 17 + frame.armA, 4, 10, p.skin);
-  drawRect(19, 18 + frame.armB, 4, 10, p.skin);
-  drawRect(4 + frame.footA, 42 + frame.legA, 7, 6, p.boots);
-  drawRect(13 + frame.footB, 42 + frame.legB, 7, 6, p.boots);
+  drawRect(7, 18, 10, 4, "rgba(255,255,255,0.12)");
+  drawRect(5 + frame.frontLegX, 29 + frame.frontLeg, 6, 13, p.pants);
+  drawRect(13 + frame.backLegX, 29 + frame.backLeg, 6, 13, p.pants);
+  drawRect(1 + frame.frontArmX, 17 + frame.frontArm, 4, 10, p.skin);
+  drawRect(19 + frame.backArmX, 18 + frame.backArm, 4, 10, p.skin);
+  drawRect(4 + frame.frontFootX, 42 + frame.frontLeg, 7, 6, p.boots);
+  drawRect(13 + frame.backFootX, 42 + frame.backLeg, 7, 6, p.boots);
   drawRect(8, 8, 2, 2, "#e6ffb8");
   drawRect(14, 8, 2, 2, "#e6ffb8");
+  drawRect(10, 12, 5, 2, "#321f1f");
   ctx.restore();
   drawEnemyAccessory(enemy);
 }
