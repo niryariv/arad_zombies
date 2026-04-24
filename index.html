@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>הילד האחרון</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css?v=20260424" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="intro">
+        <p class="eyebrow">נפילת החייזרים // ערד</p>
+        <h1>הילד האחרון</h1>
+        <p class="pitch">
+          הסיפור מתחיל בבית ספר קדם בערד, ממשיך בפגיעה מהשמיים,
+          ועובר בין מקומות בעיר עד הסיום בפאב המוזה.
+        </p>
+        <ol class="story-beats">
+          <li>בהתחלה הוא בכיתה עם החברים שלו.</li>
+          <li>משהו נופל מהשמיים והופך את כולם לזומבים.</li>
+          <li>הילד בורח לבונקר עם עוד כמה ניצולים.</li>
+          <li>גם הם נופלים, והוא נשאר לבד מול העולם.</li>
+        </ol>
+        <div class="mode-picker" aria-label="בחירת מצב משחק">
+          <p class="mode-title">מצב משחק</p>
+          <div class="mode-actions">
+            <button class="mode-button is-selected" id="mode-one" type="button">שחקן אחד</button>
+            <button class="mode-button" id="mode-two" type="button">שני שחקנים</button>
+          </div>
+          <p class="mode-note">אפשר גם לבחור עם המקשים 1 או 2 ואז ללחוץ אנטר.</p>
+        </div>
+        <ul class="controls">
+          <li><span>התחלה</span> אנטר או לחיצה על המסך</li>
+          <li><span>שחקן 1</span> תנועה במקשי צד שמאל או בחצים, ירי ברווח או במקש הירי</li>
+          <li><span>שחקן 2</span> תנועה עם החצים, ירי במקש האלכסון או במקש הימני הארוך</li>
+          <li><span>עכבר</span> קליק ימני יורה לשחקן 1</li>
+          <li><span>דילוג / אתחול</span> אנטר / ר</li>
+        </ul>
+      </section>
+
+      <section class="game-panel">
+        <div class="hud" aria-live="polite">
+          <div><span>חיים</span> <strong id="health">3</strong></div>
+          <div><span>שלב</span> <strong id="wave">1</strong></div>
+          <div><span>חיסולים</span> <strong id="score">0</strong></div>
+          <div><span>מצב</span> <strong id="status">שורד</strong></div>
+        </div>
+        <div class="mission-bar"><span>משימה</span> <strong id="mission">התחילו את סצנת הפתיחה</strong></div>
+        <canvas
+          id="game"
+          width="960"
+          height="540"
+          aria-label="משחק הישרדות רטרו"
+        ></canvas>
+        <p class="hint" id="hint">
+          לחצו אנטר או לחצו על המסך כדי להתחיל את סצנת הפתיחה.
+        </p>
+      </section>
+    </main>
+
+    <script src="./game.js?v=20260424b"></script>
+  </body>
+</html>
